@@ -19,3 +19,23 @@ from pydantic import BaseModel
 from datetime import datetime
 import json
 from pathlib import Path
+
+app = FastAPI(
+    title="Applied Programming Course HS Coburg",
+    description="Simple note management API",
+    version="1.0.0"
+)
+
+###############################
+#### Note API Endpoints (Tag 2)
+###############################
+
+class NoteCreate(BaseModel):
+    title: str
+    content: str
+
+ class Note(BaseModel):
+    id: int
+    title: str
+    content: str
+    created_at: str  
