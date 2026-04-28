@@ -1,44 +1,44 @@
-from fastapi import FastAPI 
-
-app = FastAPI()
-
-@app.get("/")
-def root ():
-    return{"message": "Hello, World!"}
-
-@app.get("/name/{name}")
-def greet_name(name:str):
-    return {"message":f"Hello,{name}!"}
-
-@app.get("/zahl/{zahl}")
-def greet_name(zahl: int):
-    return {"message":f"Zahl +1,{zahl + 1}!"}
-
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 from pathlib import Path
 
 app = FastAPI(
-    title="Applied Programming Course HS Coburg",
-    description="Simple note management API",
+    title="Note Taking API",
+    description="Simple note management",
     version="1.0.0"
 )
 
-###############################
-#### Note API Endpoints (Tag 2)
-###############################
+@app.get("/")
+def root():
+    return {"message": "Hello, World!"}
+
+@app.get("/name/{name}")
+def greet_name(name: str):
+    return {"message": f"Hello, {name}!"}
+
+@app.get("/calculate/{number}")
+def calculate(number: float):
+    result = number * 2 + 5
+    return {"message": f"Der verrechnete Wert von {number} ist {result}"}
+
+
+####################################
+### Note API Endpoints (tag 2)
+####################################
 
 class NoteCreate(BaseModel):
     title: str
     content: str
+    category: str  # ← ADD THIS
 
- class Note(BaseModel):
+class Note(BaseModel):
     id: int
     title: str
     content: str
-    created_at: str  
+    category: str   # ← ADD THIS with default
+    created_at: str
 
 NOTES_FILE = Path("data/notes.json")
 
@@ -68,3 +68,69 @@ def save_notes(notes_db):
         # Convert Note objects to dicts
         notes_data = [note.dict() for note in notes_db]
         json.dump(notes_data, f, indent=2)
+
+@app.post("/notes", status_code=201)
+def create_note(note: NoteCreate):
+    notes_db, note_id_counter = load_notes()
+    
+    new_note = Note(
+        id=note_id_counter,
+        title=note.title,
+        content=note.content,
+        category=note.category,
+        created_at=datetime.now(timezone.utc).isoformat()
+    )
+    
+    notes_db.append(new_note)
+    save_notes(notes_db)
+    return new_note
+
+@app.get("/notes")
+def list_notes() -> list [Note]:
+    """Get all notes"""
+    notes_db, _ = load_notes ()
+    return notes_db
+
+@app.get("/notes/stats")
+def get_notes_stats():
+    """Get statistics about notes"""
+    notes_db, _ = load_notes()
+    
+    # Count by category
+    categories = {}
+    for note in notes_db:
+        if note.category in categories:
+            categories[note.category] += 1
+        else:
+            categories[note.category] = 1
+    
+    return {
+        "total_notes": len(notes_db),
+        "by_category": categories
+    }
+
+@app.get("/notes/category/{category}")
+def get_notes_by_category(category: str):
+    """Get all notes in a specific category"""
+    notes_db, _ = load_notes()
+    filtered_notes = []
+    
+    for note in notes_db:
+        if note.category == category:
+            filtered_notes.append(note)
+    
+    return filtered_notes
+
+@app.get("/notes/{note_id}")
+def get_note(note_id: int):
+    """Get a specific note by ID"""
+    notes_db, _ = load_notes()
+    for note in notes_db:
+        if note.id == note_id:
+            return note
+    
+    # Not found - raise 404 error
+    raise HTTPException(
+        status_code=404,
+        detail=f"Note with ID {note_id} not found"
+    )
