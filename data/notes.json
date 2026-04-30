@@ -46,5 +46,13 @@
     "category": "work",
     "tags": [],
     "created_at": "2026-04-30T15:45:51.747690+00:00"
+  },
+  {
+    "id": 7,
+    "title": "Updated Title",
+    "content": "New content",
+    "category": "personal",
+    "tags": [],
+    "created_at": "2026-04-30T15:59:24.615168+00:00"
   }
 ]

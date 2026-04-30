@@ -139,6 +139,54 @@ def get_note(note_id: int):
         detail=f"Note with ID {note_id} not found"
     )
 
+
+@app.put("/notes/{note_id}")
+def update_note(note_id: int, note_update: NoteCreate) -> Note:
+    """Update an existing note"""
+    
+    notes_db, _ = load_notes()
+    
+    # Find the note
+    for i, note in enumerate(notes_db):
+        if note.id == note_id:
+            # Update note (keep id and created_at)
+            updated_note = Note(
+                id=note.id,
+                title=note_update.title,
+                content=note_update.content,
+                category=note_update.category,
+                tags=note_update.tags,
+                created_at=note.created_at
+            )
+            
+            notes_db[i] = updated_note
+            save_notes(notes_db)
+            return updated_note
+    
+    # Not found
+    raise HTTPException(
+        status_code=404,
+        detail=f"Note with ID {note_id} not found"
+    )
+
+@app.delete("/notes/{note_id}", status_code=204)
+def delete_note(note_id: int):
+    """Delete a note"""
+    
+    notes_db, _ = load_notes()
+    
+    # Find and remove the note
+    for i, note in enumerate(notes_db):
+        if note.id == note_id:
+            notes_db.pop(i)
+            save_notes(notes_db)
+            return  # 204 No Content
+    
+    # Not found
+    raise HTTPException(
+        status_code=404,
+        detail=f"Note with ID {note_id} not found"
+    )
 ################################
 ######### Crud Endpoints
 ###############################
