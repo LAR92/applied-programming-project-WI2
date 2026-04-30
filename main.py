@@ -187,6 +187,21 @@ def delete_note(note_id: int):
         status_code=404,
         detail=f"Note with ID {note_id} not found"
     )
+
+@app.get("/tags")
+def list_tags() -> list[str]:
+    """Get all unique tags from all notes"""
+    
+    notes_db, _ = load_notes()
+    
+    # Collect all tags
+    all_tags = set()
+    for note in notes_db:
+        for tag in note.tags:
+            all_tags.add(tag)
+    
+    # Return sorted list
+    return sorted(list(all_tags))
 ################################
 ######### Crud Endpoints
 ###############################
