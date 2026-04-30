@@ -134,3 +134,25 @@ def get_note(note_id: int):
         status_code=404,
         detail=f"Note with ID {note_id} not found"
     )
+
+################################
+######### Crud Endpoints
+###############################
+
+@app.get("/queryparameters")
+def query_parameters(param1: str = None, param2: int = None) -> dict:
+    
+    namen = ["Alice", "Bob", "Charlie", "Diana"]
+
+    if not param1: return {"namen": namen}
+
+    namen_gefiltert = []
+    for name in namen:
+        if param1 in name:
+            namen_gefiltert.append(name)
+
+    return {
+        "param1": param1,
+        "param2": param2,
+        "namen": namen_gefiltert
+        }
