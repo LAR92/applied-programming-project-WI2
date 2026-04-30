@@ -88,40 +88,42 @@ def create_note(note: NoteCreate):
     return new_note
 
 @app.get("/notes")
-def list_notes() -> list [Note]:
-    """Get all notes"""
-    notes_db, _ = load_notes ()
-    return notes_db
-
-@app.get("/notes/stats")
-def get_notes_stats():
-    """Get statistics about notes"""
+def list_notes(
+    category: str = None,
+    search: str = None,
+    tag: str = None
+) -> list[Note]:
+    """
+    List notes with optional filters
+    
+    - category: Filter by category
+    - search: Search in title and content
+    - tag: Filter by tag
+    """
     notes_db, _ = load_notes()
     
-    # Count by category
-    categories = {}
+    # Apply filters
+    filtered = []
     for note in notes_db:
-        if note.category in categories:
-            categories[note.category] += 1
-        else:
-            categories[note.category] = 1
+        # Filter by category
+        if category and note.category != category:
+            continue
+        
+        # Filter by search term
+        if search:
+            search_lower = search.lower()
+            title_match = search_lower in note.title.lower()
+            content_match = search_lower in note.content.lower()
+            if not (title_match or content_match):
+                continue
+        
+        # Filter by tag
+        if tag and tag not in note.tags:
+            continue
+        
+        filtered.append(note)
     
-    return {
-        "total_notes": len(notes_db),
-        "by_category": categories
-    }
-
-@app.get("/notes/category/{category}")
-def get_notes_by_category(category: str):
-    """Get all notes in a specific category"""
-    notes_db, _ = load_notes()
-    filtered_notes = []
-    
-    for note in notes_db:
-        if note.category == category:
-            filtered_notes.append(note)
-    
-    return filtered_notes
+    return filtered
 
 @app.get("/notes/{note_id}")
 def get_note(note_id: int):
