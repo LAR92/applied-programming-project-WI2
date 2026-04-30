@@ -31,13 +31,15 @@ def calculate(number: float):
 class NoteCreate(BaseModel):
     title: str
     content: str
-    category: str  # ← ADD THIS
+    category: str
+    tags: list[str] = []  # ← ADD THIS (default empty list)
 
 class Note(BaseModel):
     id: int
     title: str
     content: str
-    category: str   # ← ADD THIS with default
+    category: str
+    tags: list[str] = []  # ← ADD THIS
     created_at: str
 
 NOTES_FILE = Path("data/notes.json")
@@ -156,3 +158,4 @@ def query_parameters(param1: str = None, param2: int = None) -> dict:
         "param2": param2,
         "namen": namen_gefiltert
         }
+
