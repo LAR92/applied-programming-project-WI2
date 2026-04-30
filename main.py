@@ -226,6 +226,45 @@ def list_notes(
     # Already implemented today!
     # Test that ALL three work together
     pass
+
+@app.get("/notes/stats")
+def get_note_stats():
+    """
+    Get statistics about notes
+    
+    Returns:
+    - Total notes
+    - Notes per category
+    - Most used tags (top 5)
+    - Total number of unique tags
+    """
+    notes_db, _ = load_notes()
+        # Calculate statistics
+    # ... your code here
+    
+    return {
+        "total_notes": ...,
+        "by_category": {...},
+        "top_tags": [...],
+        "unique_tags_count": ...
+    }
+
+@app.get("/categories")
+def list_categories() -> list[str]:
+    """Get all unique categories from all notes"""
+    notes_db, _ = load_notes()
+    
+    # Collect unique categories
+    # Return sorted list
+    pass
+
+@app.get("/categories/{category_name}/notes")
+def get_notes_by_category(category_name: str) -> list[Note]:
+    """Get all notes in a specific category"""
+    notes_db, _ = load_notes()
+    
+    # Filter notes by category
+    pass
 ################################
 ######### Crud Endpoints
 ###############################
