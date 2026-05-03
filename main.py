@@ -414,6 +414,53 @@ def create_note(note: NoteCreate, session: SessionDep) -> NoteResponse:
         tags=[tag.name for tag in db_note.tags],
         created_at=db_note.created_at.isoformat()
     )
+
+from sqlmodel import select, or_, col
+
+@app.get("/notes")
+def list_notes(
+    session: SessionDep,
+    category: str = None,
+    search: str = None,
+    tag: str = None
+) -> list[NoteResponse]:
+    """List notes with filters"""
+    
+    # Build query
+    statement = select(Note)
+    
+    # Apply filters
+    if category:
+        statement = statement.where(Note.category == category)
+    
+    if search:
+        search_lower = search.lower()
+        statement = statement.where(
+            or_(
+                col(Note.title).ilike(f"%{search_lower}%"),
+                col(Note.content).ilike(f"%{search_lower}%")
+            )
+        )
+    
+    if tag:
+        tag_lower = tag.lower()
+        statement = statement.join(Note.tags).where(Tag.name == tag_lower)
+    
+    # Execute query
+    notes = session.exec(statement).all()
+    
+    # Convert to response models
+    return [
+        NoteResponse(
+            id=n.id,
+            title=n.title,
+            content=n.content,
+            category=n.category,
+            tags=[tag.name for tag in n.tags],
+            created_at=n.created_at.isoformat()
+        )
+        for n in notes
+    ]
 ################################
 ######### Crud Endpoints
 ###############################
