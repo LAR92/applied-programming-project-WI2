@@ -265,6 +265,32 @@ def get_notes_by_category(category_name: str) -> list[Note]:
     
     # Filter notes by category
     pass
+
+@app.get("/categories/{category_name}/notes")
+def get_notes_by_category(category_name: str) -> list[Note]:
+    """Get all notes in a specific category"""
+    notes_db, _ = load_notes()
+    
+    # Filter notes by category
+    pass
+
+from typing import Optional
+
+class NoteUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    category: Optional[str] = None
+    tags: Optional[list[str]] = None
+
+@app.patch("/notes/{note_id}")
+def partial_update_note(note_id: int, note_update: NoteUpdate) -> Note:
+    """
+    Partially update a note (only provided fields)
+    
+    Unlike PUT, PATCH only updates fields you provide
+    """
+    notes_db, _ = load_notes() 
+    
 ################################
 ######### Crud Endpoints
 ###############################
