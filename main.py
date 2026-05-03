@@ -344,6 +344,27 @@ def get_session():
 
 # Type alias for cleaner code
 SessionDep = Annotated[Session, Depends(get_session)]
+
+from pydantic import BaseModel
+
+# API Input model
+class NoteCreate(BaseModel):
+    title: str
+    content: str
+    category: str
+    tags: list[str] = []
+
+# API Output model
+class NoteResponse(BaseModel):
+    id: int
+    title: str
+    content: str
+    category: str
+    tags: list[str]
+    created_at: str
+    
+    class Config:
+        from_attributes = True
 ################################
 ######### Crud Endpoints
 ###############################
