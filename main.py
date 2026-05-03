@@ -333,6 +333,17 @@ engine = create_engine("sqlite:///notes.db")
 
 # Create tables (Note, Tag, and link table)
 SQLModel.metadata.create_all(engine)
+
+from typing import Annotated
+from fastapi import Depends
+
+def get_session():
+    """Create a new database session for each request"""
+    with Session(engine) as session:
+        yield session
+
+# Type alias for cleaner code
+SessionDep = Annotated[Session, Depends(get_session)]
 ################################
 ######### Crud Endpoints
 ###############################
