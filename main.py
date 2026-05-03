@@ -365,6 +365,55 @@ class NoteResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+@app.post("/notes", status_code=201)
+def create_note(note: NoteCreate, session: SessionDep) -> NoteResponse:
+    """Create a new note in database"""
+    
+    # Create note
+    db_note = Note(
+        title=note.title,
+        content=note.content,
+        category=note.category
+    )
+    
+    # Get or create tags (case-insensitive, deduplicated)
+    tag_objects = []
+    seen_tags = set()
+    
+    for tag_name in note.tags:
+        tag_name_lower = tag_name.lower().strip()
+        if not tag_name_lower or tag_name_lower in seen_tags:
+            continue
+        
+        seen_tags.add(tag_name_lower)
+        
+        # Find existing tag or create new one
+        statement = select(Tag).where(Tag.name == tag_name_lower)
+        existing_tag = session.exec(statement).first()
+        
+        if existing_tag:
+            tag_objects.append(existing_tag)
+        else:
+            new_tag = Tag(name=tag_name_lower)
+            session.add(new_tag)
+            tag_objects.append(new_tag)
+    
+    db_note.tags = tag_objects
+    
+    session.add(db_note)
+    session.commit()
+    session.refresh(db_note)  # Get the generated ID and load relationships
+    
+    # Convert to response model
+    return NoteResponse(
+        id=db_note.id,
+        title=db_note.title,
+        content=db_note.content,
+        category=db_note.category,
+        tags=[tag.name for tag in db_note.tags],
+        created_at=db_note.created_at.isoformat()
+    )
 ################################
 ######### Crud Endpoints
 ###############################
