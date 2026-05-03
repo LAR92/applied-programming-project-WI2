@@ -291,6 +291,19 @@ def partial_update_note(note_id: int, note_update: NoteUpdate) -> Note:
     """
     notes_db, _ = load_notes() 
     
+@app.get("/notes")
+def list_notes(
+    category: str = None,
+    search: str = None,
+    tag: str = None,
+    created_after: str = None,  # ISO date format
+    created_before: str = None
+):
+    # Filter by date range
+    # Hint: Compare ISO strings directly
+    pass
+
+
 ################################
 ######### Crud Endpoints
 ###############################
