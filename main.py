@@ -414,6 +414,163 @@ def create_note(note: NoteCreate, session: SessionDep) -> NoteResponse:
         tags=[tag.name for tag in db_note.tags],
         created_at=db_note.created_at.isoformat()
     )
+
+from sqlmodel import select, or_, col
+
+@app.get("/notes")
+def list_notes(
+    session: SessionDep,
+    category: str = None,
+    search: str = None,
+    tag: str = None
+) -> list[NoteResponse]:
+    """List notes with filters"""
+    
+    # Build query
+    statement = select(Note)
+    
+    # Apply filters
+    if category:
+        statement = statement.where(Note.category == category)
+    
+    if search:
+        search_lower = search.lower()
+        statement = statement.where(
+            or_(
+                col(Note.title).ilike(f"%{search_lower}%"),
+                col(Note.content).ilike(f"%{search_lower}%")
+            )
+        )
+    
+    if tag:
+        tag_lower = tag.lower()
+        statement = statement.join(Note.tags).where(Tag.name == tag_lower)
+    
+    # Execute query
+    notes = session.exec(statement).all()
+    
+    # Convert to response models
+    return [
+        NoteResponse(
+            id=n.id,
+            title=n.title,
+            content=n.content,
+            category=n.category,
+            tags=[tag.name for tag in n.tags],
+            created_at=n.created_at.isoformat()
+        )
+        for n in notes
+    ]
+
+@app.get("/notes/{note_id}")
+def get_note(note_id: int, session: SessionDep) -> NoteResponse:
+    note = session.get(Note, note_id)
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    return NoteResponse(
+        id=note.id,
+        title=note.title,
+        content=note.content,
+        category=note.category,
+        tags=[tag.name for tag in note.tags],
+        created_at=note.created_at.isoformat()
+    )
+
+@app.put("/notes/{note_id}")
+def update_note(note_id: int, note_update: NoteCreate, session: SessionDep) -> NoteResponse:
+    note = session.get(Note, note_id)
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    
+    # Update fields
+    note.title = note_update.title
+    note.content = note_update.content
+    note.category = note_update.category
+    
+    # Update tags (similar logic to create_note)
+    tag_objects = []
+    seen_tags = set()
+    
+    for tag_name in note_update.tags:
+        tag_name_lower = tag_name.lower().strip()
+        if not tag_name_lower or tag_name_lower in seen_tags:
+            continue
+        
+        seen_tags.add(tag_name_lower)
+        
+        statement = select(Tag).where(Tag.name == tag_name_lower)
+        existing_tag = session.exec(statement).first()
+        
+        if existing_tag:
+            tag_objects.append(existing_tag)
+        else:
+            new_tag = Tag(name=tag_name_lower)
+            session.add(new_tag)
+            tag_objects.append(new_tag)
+    
+    note.tags = tag_objects
+    
+    session.add(note)
+    session.commit()
+    session.refresh(note)
+    
+    return NoteResponse(
+        id=note.id,
+        title=note.title,
+        content=note.content,
+        category=note.category,
+        tags=[tag.name for tag in note.tags],
+        created_at=note.created_at.isoformat()
+    )
+
+@app.delete("/notes/{note_id}", status_code=204)
+def delete_note(note_id: int, session: SessionDep):
+    note = session.get(Note, note_id)
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    session.delete(note)
+    session.commit()
+@app.patch("/notes/{note_id}")
+def partial_update_note(note_id: int, note_update: NoteUpdate) -> Note:
+    """
+    Partially update a note (only provided fields)
+    
+    Unlike PUT, PATCH only updates fields you provide
+    """
+    notes_db, _ = load_notes()
+
+@app.get("/tags")
+def list_tags(session: SessionDep) -> list[str]:
+    """Get all unique tags from the Tag table"""
+    statement = select(Tag)
+    tags = session.exec(statement).all()
+    
+    return sorted([tag.name for tag in tags])
+
+@app.get("/tags/{tag_name}/notes")
+def get_notes_by_tag(tag_name: str, session: SessionDep) -> list[NoteResponse]:
+    """Get all notes with specific tag"""
+    
+    # Find the tag (case-insensitive)
+    tag_lower = tag_name.lower()
+    statement = select(Tag).where(Tag.name == tag_lower)
+    tag = session.exec(statement).first()
+    
+    if not tag:
+        return []  # No notes if tag doesn't exist
+    
+    # Return all notes associated with this tag
+    return [
+        NoteResponse(
+            id=note.id,
+            title=note.title,
+            content=note.content,
+            category=note.category,
+            tags=[tag.name for tag in note.tags],
+            created_at=note.created_at.isoformat()
+        )
+        for note in tag.notes
+    ]
 ################################
 ######### Crud Endpoints
 ###############################
