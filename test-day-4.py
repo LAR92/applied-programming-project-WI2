@@ -248,6 +248,39 @@ class TestCreateNote:
         assert data["title"] == "Valid Title"  # Whitespace stripped
         assert data["content"] == "Valid content"  # Whitespace stripped
         assert data["tags"] == ["tag1", "tag2"]  # Whitespace stripped from tags
+    
+    def test_create_work_note_with_work_tag_passing(self):
+        """Test creating a work note with work tag (should pass)"""
+        payload = {
+            "title": "Work Meeting",
+            "content": "Discuss project timeline",
+            "category": "work",
+            "tags": ["work", "meeting"]
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 201
+    
+    def test_create_work_note_without_work_tag_failing(self):
+        """Test creating a work note without work tag (should fail)"""
+        payload = {
+            "title": "Work Meeting",
+            "content": "Discuss project timeline",
+            "category": "work",
+            "tags": ["meeting", "urgent"]  # Missing "work" tag
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 422  # Validation error
+    
+    def test_create_non_work_note_without_work_tag_passing(self):
+        """Test creating a non-work note without work tag (should pass)"""
+        payload = {
+            "title": "Personal Note",
+            "content": "Remember to buy groceries",
+            "category": "personal",
+            "tags": ["shopping", "reminder"]
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 201
 
 
 # ============================================================================
@@ -726,7 +759,7 @@ class TestNotesStats:
             "title": "Test",
             "content": "Content",
             "category": "work",
-            "tags": ["tag1"]
+            "tags": ["work", "tag1"]
         }
         requests.post(f"{BASE_URL}/notes", json=payload)
         
@@ -735,7 +768,7 @@ class TestNotesStats:
         data = response.json()
         assert data["total_notes"] == 1
         assert data["by_category"]["work"] == 1
-        assert data["unique_tags_count"] == 1
+        assert data["unique_tags_count"] == 2
         assert len(data["top_tags"]) == 1
     
     def test_stats_multiple_notes_categories(self):
@@ -761,9 +794,9 @@ class TestNotesStats:
     def test_stats_tag_frequency(self):
         """Test that tags are counted correctly"""
         notes = [
-            {"title": "Note 1", "content": "C", "category": "work", "tags": ["python", "code"]},
-            {"title": "Note 2", "content": "C", "category": "work", "tags": ["python", "tutorial"]},
-            {"title": "Note 3", "content": "C", "category": "work", "tags": ["javascript", "code"]},
+            {"title": "Note 1", "content": "C", "category": "work", "tags": ["work", "python", "code"]},
+            {"title": "Note 2", "content": "C", "category": "work", "tags": ["work", "python", "tutorial"]},
+            {"title": "Note 3", "content": "C", "category": "work", "tags": ["work", "javascript", "code"]},
         ]
         
         for note in notes:
@@ -861,7 +894,7 @@ class TestCategoriesEndpoints:
     def test_list_categories_sorted(self):
         """Test that categories are returned sorted"""
         notes = [
-            {"title": "N1", "content": "C", "category": "work", "tags": []},
+            {"title": "N1", "content": "C", "category": "work", "tags": ["work"]},
             {"title": "N2", "content": "C", "category": "personal", "tags": []},
             {"title": "N3", "content": "C", "category": "school", "tags": []},
             {"title": "N4", "content": "C", "category": "personal", "tags": []},  # Duplicate category
@@ -879,8 +912,8 @@ class TestCategoriesEndpoints:
     def test_get_notes_by_category_endpoint(self):
         """Test GET /categories/{category_name}/notes"""
         notes = [
-            {"title": "Work 1", "content": "C", "category": "work", "tags": []},
-            {"title": "Work 2", "content": "C", "category": "work", "tags": []},
+            {"title": "Work 1", "content": "C", "category": "work", "tags": ["work"]},
+            {"title": "Work 2", "content": "C", "category": "work", "tags": ["work"]},
             {"title": "Personal", "content": "C", "category": "personal", "tags": []},
         ]
         

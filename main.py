@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from datetime import datetime, timezone
 import json
 from pathlib import Path
@@ -96,6 +96,19 @@ class NoteCreate(BaseModel):
         "str_strip_whitespace": True,
         "extra": "forbid"
     }
+    
+    @model_validator(mode="after")
+    def validate_work_category_requires_work_tag(self):
+        """
+        Cross-field validation: if category is "work", tags must contain "work".
+        This must be a model validator (not field validator) because it validates
+        the relationship between two different fields (category and tags).
+        Field validators can only access individual fields, while model validators
+        can access all fields and perform cross-field validation.
+        """
+        if self.category == "work" and "work" not in self.tags:
+            raise ValueError("work notes must include the 'work' tag")
+        return self
 
 # API Output model
 class NoteResponse(BaseModel):
