@@ -166,12 +166,12 @@ class TestCreateNote:
         assert data["content"] == long_content
     
     def test_create_note_with_unicode(self):
-        """Test creating notes with unicode characters"""
+        """Test creating notes with unicode characters in title/content (but valid tags)"""
         payload = {
             "title": "Ünïçödé Têxt 中文 العربية",
             "content": "こんにちは мир 🚀 🎉",
             "category": "general",
-            "tags": ["unicode", "中文", "русский"]
+            "tags": ["unicode", "international"]
         }
         response = requests.post(f"{BASE_URL}/notes", json=payload)
         assert response.status_code == 201
@@ -240,14 +240,14 @@ class TestCreateNote:
             "title": "  Valid Title  ",
             "content": "  Valid content  ",
             "category": "work",
-            "tags": [" tag1 ", " tag2 "]
+            "tags": [" work ", " tag2 "]  # Include 'work' tag for work category
         }
         response = requests.post(f"{BASE_URL}/notes", json=payload)
         assert response.status_code == 201
         data = response.json()
         assert data["title"] == "Valid Title"  # Whitespace stripped
         assert data["content"] == "Valid content"  # Whitespace stripped
-        assert data["tags"] == ["tag1", "tag2"]  # Whitespace stripped from tags
+        assert data["tags"] == ["work", "tag2"]  # Whitespace stripped from tags
     
     def test_create_work_note_with_work_tag_passing(self):
         """Test creating a work note with work tag (should pass)"""
@@ -1092,3 +1092,227 @@ class TestCategoriesEndpoints:
         assert response.status_code == 200
         data = response.json()
         assert data == []
+
+
+# ============================================================================
+# TAG VALIDATION TESTS
+# ============================================================================
+
+class TestTagValidation:
+    """Test Tag model validation: name constraints and normalization"""
+    
+    def test_tag_valid_simple(self):
+        """Test creating a note with a valid simple tag"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": ["work"]
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 201
+        data = response.json()
+        assert "work" in data["tags"]
+    
+    def test_tag_valid_with_digits(self):
+        """Test tag with digits"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": ["tag123"]
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 201
+        data = response.json()
+        assert "tag123" in data["tags"]
+    
+    def test_tag_valid_with_dashes(self):
+        """Test tag with dashes"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": ["my-tag-123"]
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 201
+        data = response.json()
+        assert "my-tag-123" in data["tags"]
+    
+    def test_tag_whitespace_stripped(self):
+        """Test that whitespace is stripped from tags"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": ["  work  ", "\ttag\n"]
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 201
+        data = response.json()
+        # Whitespace should be stripped
+        assert "work" in data["tags"]
+        assert "tag" in data["tags"]
+        # No whitespace versions should exist
+        assert "  work  " not in data["tags"]
+    
+    def test_tag_uppercase_converted_to_lowercase(self):
+        """Test that uppercase tags are converted to lowercase"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": ["WORK", "Meeting"]
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 201
+        data = response.json()
+        # Should be lowercased
+        assert "work" in data["tags"]
+        assert "meeting" in data["tags"]
+        # Uppercase should not exist
+        assert "WORK" not in data["tags"]
+        assert "Meeting" not in data["tags"]
+    
+    def test_tag_min_length_1_fails(self):
+        """Test tag with 1 character fails (min_length=2)"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": ["a"]
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 422
+    
+    def test_tag_min_length_2_succeeds(self):
+        """Test tag with 2 characters succeeds (min_length=2)"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": ["ab"]
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 201
+    
+    def test_tag_max_length_30_succeeds(self):
+        """Test tag with 30 characters succeeds (max_length=30)"""
+        tag_30 = "a" * 30
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": [tag_30]
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 201
+    
+    def test_tag_max_length_31_fails(self):
+        """Test tag with 31 characters fails (max_length=30)"""
+        tag_31 = "a" * 31
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": [tag_31]
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 422
+    
+    def test_tag_invalid_uppercase_in_pattern(self):
+        """Test tag with uppercase letters fails (pattern: ^[a-z0-9-]+$)"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": ["MyTag"]  # Has uppercase
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        # Should fail because uppercase would be lowercased but then...
+        # Actually, we lowercase in the validator, so "MyTag" becomes "mytag" which is valid
+        assert response.status_code == 201
+        data = response.json()
+        assert "mytag" in data["tags"]
+    
+    def test_tag_invalid_special_chars(self):
+        """Test tag with special characters fails"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": ["tag@name"]  # Has @
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 422
+    
+    def test_tag_invalid_underscore(self):
+        """Test tag with underscore fails (pattern: ^[a-z0-9-]+$)"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": ["tag_name"]  # Has underscore
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 422
+    
+    def test_tag_invalid_space(self):
+        """Test tag with space fails after stripping"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": ["tag name"]  # Has space (not just leading/trailing)
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 422
+    
+    def test_tag_valid_dash_at_edges(self):
+        """Test tag with dashes at edges (should be valid)"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": ["-tag-", "a-b"]
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 201
+        data = response.json()
+        assert "-tag-" in data["tags"]
+        assert "a-b" in data["tags"]
+    
+    def test_tag_empty_string_fails(self):
+        """Test empty tag after stripping fails"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": ["   "]  # Only whitespace
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        # Empty string after strip should fail min_length=2
+        assert response.status_code == 422
+    
+    def test_patch_tag_constraint_validation(self):
+        """Test that tag validation also works on PATCH"""
+        # Create initial note
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": ["tag1"]
+        }
+        create_response = requests.post(f"{BASE_URL}/notes", json=payload)
+        note_id = create_response.json()["id"]
+        
+        # Try to patch with invalid tag
+        patch_payload = {"tags": ["a"]}  # Too short (min_length=2)
+        response = requests.patch(f"{BASE_URL}/notes/{note_id}", json=patch_payload)
+        assert response.status_code == 422
+        
+        # Patch with valid tag should succeed
+        patch_payload = {"tags": ["tag2", "tag-3"]}
+        response = requests.patch(f"{BASE_URL}/notes/{note_id}", json=patch_payload)
+        assert response.status_code == 200

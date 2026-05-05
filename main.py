@@ -1,9 +1,10 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, field_validator
 from datetime import datetime, timezone
 import json
 from pathlib import Path
 from typing import Optional
+import re
 from sqlmodel import SQLModel, Field, Session, col, create_engine, Relationship, or_, select
 from typing import Annotated
 from fastapi import Depends
@@ -35,7 +36,33 @@ class Tag(SQLModel, table=True):
     __tablename__ = 'tags'
     
     id: Optional[int] = Field(default=None, primary_key=True)
-    name: str = Field(unique=True, index=True)  # Unique tag name
+    name: str = Field(
+        unique=True, 
+        index=True,
+        min_length=2,
+        max_length=30
+    )
+    
+    @field_validator("name", mode="before")
+    @classmethod
+    def validate_name(cls, v):
+        """
+        Validate and normalize tag name:
+        - Strip whitespace
+        - Convert to lowercase
+        - Validate against pattern: lowercase, digits, dashes only
+        """
+        if not isinstance(v, str):
+            raise ValueError("name must be a string")
+        
+        # Strip whitespace and lowercase
+        v = v.strip().lower()
+        
+        # Validate pattern: only lowercase letters, digits, and dashes
+        if not re.match(r"^[a-z0-9-]+$", v):
+            raise ValueError("name must contain only lowercase letters, digits, and dashes")
+        
+        return v
     
     # Many-to-many relationship with Note (implicit link table)
     notes: list[Note] = Relationship(back_populates="tags", link_model=NoteTag)
@@ -46,6 +73,37 @@ engine = create_engine("sqlite:///notes.db")
 
 # Create DB tables if they do not exist yet: notes, tags, note_tag
 SQLModel.metadata.create_all(engine)
+
+def validate_and_normalize_tag(tag_name: str) -> str:
+    """
+    Validate and normalize a tag name:
+    - Strip whitespace
+    - Convert to lowercase
+    - Check length (2-30 chars)
+    - Validate pattern (lowercase, digits, dashes only)
+    
+    Raises ValueError if validation fails.
+    Returns normalized tag name.
+    """
+    if not isinstance(tag_name, str):
+        raise ValueError("tag name must be a string")
+    
+    # Strip and lowercase
+    tag_name = tag_name.strip().lower()
+    
+    # Check minimum length
+    if len(tag_name) < 2:
+        raise ValueError("tag name must be at least 2 characters")
+    
+    # Check maximum length
+    if len(tag_name) > 30:
+        raise ValueError("tag name must be at most 30 characters")
+    
+    # Validate pattern: only lowercase letters, digits, and dashes
+    if not re.match(r"^[a-z0-9-]+$", tag_name):
+        raise ValueError("tag name must contain only lowercase letters, digits, and dashes")
+    
+    return tag_name
 
 def get_session():
     """Create a new database session for each request"""
@@ -96,6 +154,34 @@ class NoteCreate(BaseModel):
         "str_strip_whitespace": True,
         "extra": "forbid"
     }
+    
+    @field_validator("tags", mode="before")
+    @classmethod
+    def validate_tags(cls, v):
+        """Validate each tag in the list"""
+        if not isinstance(v, list):
+            raise ValueError("tags must be a list")
+        
+        # Filter out empty strings and validate each tag
+        validated_tags = []
+        seen = set()
+        
+        for tag in v:
+            if not isinstance(tag, str):
+                raise ValueError("each tag must be a string")
+            
+            # Validate and normalize tag
+            try:
+                tag_normalized = validate_and_normalize_tag(tag)
+            except ValueError as e:
+                raise ValueError(f"Invalid tag '{tag}': {str(e)}")
+            
+            # Skip duplicates
+            if tag_normalized not in seen:
+                validated_tags.append(tag_normalized)
+                seen.add(tag_normalized)
+        
+        return validated_tags
     
     @model_validator(mode="after")
     def validate_work_category_requires_work_tag(self):
@@ -186,20 +272,26 @@ def create_note(note: NoteCreate, session: SessionDep) -> NoteResponse:
     
     # Normalize and deduplicate tag names, find or create Tag rows
     for tag_name in note.tags:
-        tag_name_lower = tag_name.lower().strip()
-        if not tag_name_lower or tag_name_lower in seen_tags:
+        try:
+            # Validate and normalize tag name
+            tag_name_normalized = validate_and_normalize_tag(tag_name)
+        except ValueError as e:
+            raise HTTPException(status_code=422, detail=f"Invalid tag: {str(e)}")
+        
+        # Skip if already seen in this request
+        if tag_name_normalized in seen_tags:
             continue
         
-        seen_tags.add(tag_name_lower)
+        seen_tags.add(tag_name_normalized)
         
         # Find existing tag or create new one
-        statement = select(Tag).where(Tag.name == tag_name_lower)
+        statement = select(Tag).where(Tag.name == tag_name_normalized)
         existing_tag = session.exec(statement).first()
         
         if existing_tag:
             tag_objects.append(existing_tag)
         else:
-            new_tag = Tag(name=tag_name_lower)
+            new_tag = Tag(name=tag_name_normalized)
             session.add(new_tag)
             tag_objects.append(new_tag)
     
@@ -503,6 +595,37 @@ class NoteUpdate(BaseModel):
         "extra": "forbid"
     }
     
+    @field_validator("tags", mode="before")
+    @classmethod
+    def validate_tags(cls, v):
+        """Validate each tag in the list (only if provided)"""
+        if v is None:
+            return None
+        
+        if not isinstance(v, list):
+            raise ValueError("tags must be a list")
+        
+        # Filter out empty strings and validate each tag
+        validated_tags = []
+        seen = set()
+        
+        for tag in v:
+            if not isinstance(tag, str):
+                raise ValueError("each tag must be a string")
+            
+            # Validate and normalize tag
+            try:
+                tag_normalized = validate_and_normalize_tag(tag)
+            except ValueError as e:
+                raise ValueError(f"Invalid tag '{tag}': {str(e)}")
+            
+            # Skip duplicates
+            if tag_normalized not in seen:
+                validated_tags.append(tag_normalized)
+                seen.add(tag_normalized)
+        
+        return validated_tags
+    
     @model_validator(mode="after")
     def validate_work_category_requires_work_tag(self):
         """
@@ -534,16 +657,23 @@ def partial_update_note(note_id: int, note_update: NoteUpdate, session: SessionD
         tag_objects = []
         seen = set()
         for tag_name in update_data["tags"]:
-            tag_name_lower = tag_name.lower().strip()
-            if not tag_name_lower or tag_name_lower in seen:
+            try:
+                # Validate and normalize tag name
+                tag_name_normalized = validate_and_normalize_tag(tag_name)
+            except ValueError as e:
+                raise HTTPException(status_code=422, detail=f"Invalid tag: {str(e)}")
+            
+            # Skip if already seen in this request
+            if tag_name_normalized in seen:
                 continue
-            seen.add(tag_name_lower)
-            stmt = select(Tag).where(Tag.name == tag_name_lower)
+            seen.add(tag_name_normalized)
+            
+            stmt = select(Tag).where(Tag.name == tag_name_normalized)
             existing = session.exec(stmt).first()
             if existing:
                 tag_objects.append(existing)
             else:
-                new_tag = Tag(name=tag_name_lower)
+                new_tag = Tag(name=tag_name_normalized)
                 session.add(new_tag)
                 tag_objects.append(new_tag)
 
