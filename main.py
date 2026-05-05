@@ -502,6 +502,17 @@ class NoteUpdate(BaseModel):
         "str_strip_whitespace": True,
         "extra": "forbid"
     }
+    
+    @model_validator(mode="after")
+    def validate_work_category_requires_work_tag(self):
+        """
+        Cross-field validation: if both category and tags are provided,
+        and category is "work", then tags must contain "work".
+        Only validates if both fields are provided (not None).
+        """
+        if self.category == "work" and self.tags is not None and "work" not in self.tags:
+            raise ValueError("work notes must include the 'work' tag")
+        return self
 
 @app.patch("/notes/{note_id}")
 def partial_update_note(note_id: int, note_update: NoteUpdate, session: SessionDep) -> NoteResponse:

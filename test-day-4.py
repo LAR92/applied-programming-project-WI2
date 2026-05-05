@@ -668,6 +668,166 @@ class TestPatchNote:
         assert data["content"] == original_data["content"]
         assert data["category"] == original_data["category"]
     
+    # ====== NoteUpdate Constraint Tests ======
+    
+    def test_patch_title_constraint_min_length(self):
+        """Test PATCH with title < 3 chars returns 422"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": ["tag"]
+        }
+        create_response = requests.post(f"{BASE_URL}/notes", json=payload)
+        note_id = create_response.json()["id"]
+        
+        # Try to patch with title that's too short
+        response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={"title": ""})
+        assert response.status_code == 422
+        
+        response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={"title": "ab"})
+        assert response.status_code == 422
+    
+    def test_patch_title_constraint_max_length(self):
+        """Test PATCH with title > 100 chars returns 422"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": ["tag"]
+        }
+        create_response = requests.post(f"{BASE_URL}/notes", json=payload)
+        note_id = create_response.json()["id"]
+        
+        # Try to patch with title that's too long
+        long_title = "a" * 101
+        response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={"title": long_title})
+        assert response.status_code == 422
+    
+    def test_patch_content_constraint_min_length(self):
+        """Test PATCH with empty content returns 422"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": ["tag"]
+        }
+        create_response = requests.post(f"{BASE_URL}/notes", json=payload)
+        note_id = create_response.json()["id"]
+        
+        # Try to patch with empty content
+        response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={"content": ""})
+        assert response.status_code == 422
+    
+    def test_patch_content_constraint_max_length(self):
+        """Test PATCH with content > 10000 chars returns 422"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": ["tag"]
+        }
+        create_response = requests.post(f"{BASE_URL}/notes", json=payload)
+        note_id = create_response.json()["id"]
+        
+        # Try to patch with content that's too long
+        long_content = "a" * 10001
+        response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={"content": long_content})
+        assert response.status_code == 422
+    
+    def test_patch_category_constraint_min_length(self):
+        """Test PATCH with category < 2 chars returns 422"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": ["tag"]
+        }
+        create_response = requests.post(f"{BASE_URL}/notes", json=payload)
+        note_id = create_response.json()["id"]
+        
+        # Try to patch with category that's too short
+        response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={"category": ""})
+        assert response.status_code == 422
+        
+        response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={"category": "a"})
+        assert response.status_code == 422
+    
+    def test_patch_category_constraint_max_length(self):
+        """Test PATCH with category > 30 chars returns 422"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": ["tag"]
+        }
+        create_response = requests.post(f"{BASE_URL}/notes", json=payload)
+        note_id = create_response.json()["id"]
+        
+        # Try to patch with category that's too long
+        long_category = "a" * 31
+        response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={"category": long_category})
+        assert response.status_code == 422
+    
+    def test_patch_tags_constraint_max_items(self):
+        """Test PATCH with > 10 tags returns 422"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "Cat",
+            "tags": ["tag"]
+        }
+        create_response = requests.post(f"{BASE_URL}/notes", json=payload)
+        note_id = create_response.json()["id"]
+        
+        # Try to patch with too many tags
+        too_many_tags = [f"tag{i}" for i in range(11)]
+        response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={"tags": too_many_tags})
+        assert response.status_code == 422
+    
+    def test_patch_work_category_requires_work_tag(self):
+        """Test PATCH changing category to 'work' without 'work' tag returns 422"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "personal",
+            "tags": ["meeting"]
+        }
+        create_response = requests.post(f"{BASE_URL}/notes", json=payload)
+        note_id = create_response.json()["id"]
+        
+        # Try to change category to work without 'work' tag (both provided)
+        response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={
+            "category": "work",
+            "tags": ["meeting"]
+        })
+        assert response.status_code == 422
+        
+        # But partial update with just category should succeed (tags not provided)
+        response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={"category": "work"})
+        assert response.status_code == 200
+    
+    def test_patch_work_category_with_work_tag(self):
+        """Test PATCH changing category to work WITH work tag succeeds"""
+        payload = {
+            "title": "Title",
+            "content": "Content",
+            "category": "personal",
+            "tags": ["meeting"]
+        }
+        create_response = requests.post(f"{BASE_URL}/notes", json=payload)
+        note_id = create_response.json()["id"]
+        
+        # Change category and tags together, including 'work' tag
+        response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={
+            "category": "work",
+            "tags": ["work", "meeting"]
+        })
+        assert response.status_code == 200
+        data = response.json()
+        assert data["category"] == "work"
+        assert "work" in data["tags"]
+    
     def test_patch_nonexistent_note(self):
         """Test patching a note that doesn't exist"""
         response = requests.patch(f"{BASE_URL}/notes/9999", json={"title": "New"})
