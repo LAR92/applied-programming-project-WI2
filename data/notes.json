@@ -68,7 +68,10 @@
     "title": "test Title 1",
     "content": "New content",
     "category": "personal",
-    "tags": ["urgent", "work"],
+    "tags": [
+      "urgent",
+      "work"
+    ],
     "created_at": "2026-04-30T16:05:23.964009+00:00"
   },
   {
@@ -76,7 +79,10 @@
     "title": "test Title 2 ",
     "content": "New content",
     "category": "personal",
-    "tags": ["personal", "urgent"],
+    "tags": [
+      "personal",
+      "urgent"
+    ],
     "created_at": "2026-04-30T16:05:50.579954+00:00"
   },
   {
@@ -84,7 +90,21 @@
     "title": "test Title 3 ",
     "content": "New content",
     "category": "personal",
-    "tags": ["work", "meeting"],
+    "tags": [
+      "work",
+      "meeting"
+    ],
     "created_at": "2026-04-30T16:06:06.320801+00:00"
+  },
+  {
+    "id": 12,
+    "title": "Updated Test Note",
+    "content": "This is an updated test",
+    "category": "test",
+    "tags": [
+      "test",
+      "updated"
+    ],
+    "created_at": "2026-05-03T17:31:29.584239+00:00"
   }
 ]
