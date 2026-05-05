@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime, timezone
 import json
 from pathlib import Path
@@ -86,11 +86,16 @@ def calculate(number: float):
 
 # API Input model
 class NoteCreate(BaseModel):
-    title: str
-    content: str
-    category: str
-    tags: list[str] = []
+    title: str = Field(min_length=3, max_length=100)
+    content: str = Field(min_length=1, max_length=10000)
+    category: str = Field(min_length=2, max_length=30)
+    tags: list[str] = Field(default_factory=list, max_length=10)
     # Input model for creating/updating notes (tags as list of names)
+    
+    model_config = {
+        "str_strip_whitespace": True,
+        "extra": "forbid"
+    }
 
 # API Output model
 class NoteResponse(BaseModel):
@@ -475,10 +480,15 @@ def get_notes_by_category(category_name: str, session: SessionDep) -> list[NoteR
 # Add PATCH ENDPOINT um nur bestimmte Felder einer Note zu aktualisieren
 
 class NoteUpdate(BaseModel):
-    title: Optional[str] = None
-    content: Optional[str] = None
-    category: Optional[str] = None
-    tags: Optional[list[str]] = None
+    title: Optional[str] = Field(None, min_length=3, max_length=100)
+    content: Optional[str] = Field(None, min_length=1, max_length=10000)
+    category: Optional[str] = Field(None, min_length=2, max_length=30)
+    tags: Optional[list[str]] = Field(None, max_length=10)
+    
+    model_config = {
+        "str_strip_whitespace": True,
+        "extra": "forbid"
+    }
 
 @app.patch("/notes/{note_id}")
 def partial_update_note(note_id: int, note_update: NoteUpdate, session: SessionDep) -> NoteResponse:

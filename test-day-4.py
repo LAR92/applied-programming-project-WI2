@@ -129,7 +129,7 @@ class TestCreateNote:
         payload = {
             "title": "Test Tags",
             "content": "Testing tag normalization",
-            "category": "Test",
+            "category": "general",
             "tags": ["Python", "PROGRAMMING", "FastAPI"]
         }
         response = requests.post(f"{BASE_URL}/notes", json=payload)
@@ -143,7 +143,7 @@ class TestCreateNote:
         payload = {
             "title": "Duplicate Tags",
             "content": "Testing duplicate handling",
-            "category": "Test",
+            "category": "general",
             "tags": ["python", "Python", "PYTHON"]
         }
         response = requests.post(f"{BASE_URL}/notes", json=payload)
@@ -153,11 +153,11 @@ class TestCreateNote:
     
     def test_create_note_with_long_content(self):
         """Test creating a note with very long content"""
-        long_content = "Lorem ipsum " * 1000  # Very long text
+        long_content = ("Lorem ipsum " * 799).rstrip()  # About 9599 characters, no trailing space
         payload = {
             "title": "Long Note",
             "content": long_content,
-            "category": "Documentation",
+            "category": "general",
             "tags": ["long"]
         }
         response = requests.post(f"{BASE_URL}/notes", json=payload)
@@ -170,7 +170,7 @@ class TestCreateNote:
         payload = {
             "title": "Ünïçödé Têxt 中文 العربية",
             "content": "こんにちは мир 🚀 🎉",
-            "category": "Unicode",
+            "category": "general",
             "tags": ["unicode", "中文", "русский"]
         }
         response = requests.post(f"{BASE_URL}/notes", json=payload)
@@ -179,24 +179,75 @@ class TestCreateNote:
         assert data["title"] == payload["title"]
         assert data["content"] == payload["content"]
     
-    def test_create_multiple_notes_different_categories(self):
-        """Test creating multiple notes with different categories"""
-        categories = ["Work", "Personal", "Shopping", "Health", "Travel"]
-        created_ids = []
-        
-        for i, category in enumerate(categories):
-            payload = {
-                "title": f"Note {i+1}",
-                "content": f"Content for {category}",
-                "category": category,
-                "tags": [category.lower()]
-            }
-            response = requests.post(f"{BASE_URL}/notes", json=payload)
-            assert response.status_code == 201
-            created_ids.append(response.json()["id"])
-        
-        # Verify all notes were created with different IDs
-        assert len(set(created_ids)) == len(categories)
+    def test_create_note_with_invalid_title_too_short(self):
+        """Test creating a note with title too short"""
+        payload = {
+            "title": "Hi",  # Too short (min 3 chars)
+            "content": "Valid content",
+            "category": "work",
+            "tags": []
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 422  # Validation error
+    
+    def test_create_note_with_invalid_title_too_long(self):
+        """Test creating a note with title too long"""
+        payload = {
+            "title": "A" * 101,  # Too long (max 100 chars)
+            "content": "Valid content",
+            "category": "work",
+            "tags": []
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 422  # Validation error
+    
+    def test_create_note_with_invalid_content_too_long(self):
+        """Test creating a note with content too long"""
+        payload = {
+            "title": "Valid Title",
+            "content": "A" * 10001,  # Too long (max 10000 chars)
+            "category": "work",
+            "tags": []
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 422  # Validation error
+    
+    def test_create_note_with_invalid_category_too_short(self):
+        """Test creating a note with category too short"""
+        payload = {
+            "title": "Valid Title",
+            "content": "Valid content",
+            "category": "a",  # Too short (min 2 chars)
+            "tags": []
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 422  # Validation error
+    
+    def test_create_note_with_too_many_tags(self):
+        """Test creating a note with too many tags"""
+        payload = {
+            "title": "Valid Title",
+            "content": "Valid content",
+            "category": "work",
+            "tags": [f"tag{i}" for i in range(11)]  # 11 tags (max 10)
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 422  # Validation error
+    
+    def test_create_note_with_whitespace_stripping(self):
+        """Test that whitespace is stripped from string fields"""
+        payload = {
+            "title": "  Valid Title  ",
+            "content": "  Valid content  ",
+            "category": "work",
+            "tags": [" tag1 ", " tag2 "]
+        }
+        response = requests.post(f"{BASE_URL}/notes", json=payload)
+        assert response.status_code == 201
+        data = response.json()
+        assert data["title"] == "Valid Title"  # Whitespace stripped
+        assert data["content"] == "Valid content"  # Whitespace stripped
+        assert data["tags"] == ["tag1", "tag2"]  # Whitespace stripped from tags
 
 
 # ============================================================================
@@ -217,9 +268,9 @@ class TestListNotes:
         """Test listing all created notes"""
         # Create test notes
         notes_data = [
-            {"title": "Note 1", "content": "Content 1", "category": "Work", "tags": ["work"]},
-            {"title": "Note 2", "content": "Content 2", "category": "Personal", "tags": ["personal"]},
-            {"title": "Note 3", "content": "Content 3", "category": "Work", "tags": ["work", "urgent"]},
+            {"title": "Note 1", "content": "Content 1", "category": "work", "tags": ["work"]},
+            {"title": "Note 2", "content": "Content 2", "category": "personal", "tags": ["personal"]},
+            {"title": "Note 3", "content": "Content 3", "category": "work", "tags": ["work", "urgent"]},
         ]
         
         for note_data in notes_data:
@@ -235,19 +286,19 @@ class TestListNotes:
         """Test filtering notes by category"""
         # Create notes with different categories
         notes = [
-            {"title": "Work 1", "content": "Work content 1", "category": "Work", "tags": []},
-            {"title": "Work 2", "content": "Work content 2", "category": "Work", "tags": []},
-            {"title": "Personal", "content": "Personal content", "category": "Personal", "tags": []},
+            {"title": "Work 1", "content": "Work content 1", "category": "work", "tags": []},
+            {"title": "Work 2", "content": "Work content 2", "category": "work", "tags": []},
+            {"title": "Personal", "content": "Personal content", "category": "personal", "tags": []},
         ]
         
         for note in notes:
             requests.post(f"{BASE_URL}/notes", json=note)
         
-        response = requests.get(f"{BASE_URL}/notes?category=Work")
+        response = requests.get(f"{BASE_URL}/notes?category=work")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 2
-        assert all(note["category"] == "Work" for note in data)
+        assert all(note["category"] == "work" for note in data)
     
     def test_list_notes_filter_by_search(self):
         """Test searching notes by title or content"""
@@ -674,7 +725,7 @@ class TestNotesStats:
         payload = {
             "title": "Test",
             "content": "Content",
-            "category": "Work",
+            "category": "work",
             "tags": ["tag1"]
         }
         requests.post(f"{BASE_URL}/notes", json=payload)
@@ -683,17 +734,17 @@ class TestNotesStats:
         assert response.status_code == 200
         data = response.json()
         assert data["total_notes"] == 1
-        assert data["by_category"]["Work"] == 1
+        assert data["by_category"]["work"] == 1
         assert data["unique_tags_count"] == 1
         assert len(data["top_tags"]) == 1
     
     def test_stats_multiple_notes_categories(self):
         """Test stats with multiple notes and categories"""
         notes = [
-            {"title": "Work 1", "content": "C", "category": "Work", "tags": ["work"]},
-            {"title": "Work 2", "content": "C", "category": "Work", "tags": ["work"]},
-            {"title": "Personal", "content": "C", "category": "Personal", "tags": ["personal"]},
-            {"title": "Health", "content": "C", "category": "Health", "tags": ["health"]},
+            {"title": "Work 1", "content": "C", "category": "work", "tags": ["work"]},
+            {"title": "Work 2", "content": "C", "category": "work", "tags": ["work"]},
+            {"title": "Personal", "content": "C", "category": "personal", "tags": ["personal"]},
+            {"title": "General", "content": "C", "category": "general", "tags": ["general"]},
         ]
         
         for note in notes:
@@ -703,16 +754,16 @@ class TestNotesStats:
         assert response.status_code == 200
         data = response.json()
         assert data["total_notes"] == 4
-        assert data["by_category"]["Work"] == 2
-        assert data["by_category"]["Personal"] == 1
-        assert data["by_category"]["Health"] == 1
+        assert data["by_category"]["work"] == 2
+        assert data["by_category"]["personal"] == 1
+        assert data["by_category"]["general"] == 1
     
     def test_stats_tag_frequency(self):
         """Test that tags are counted correctly"""
         notes = [
-            {"title": "N1", "content": "C", "category": "Work", "tags": ["python", "code"]},
-            {"title": "N2", "content": "C", "category": "Work", "tags": ["python", "tutorial"]},
-            {"title": "N3", "content": "C", "category": "Work", "tags": ["javascript", "code"]},
+            {"title": "Note 1", "content": "C", "category": "work", "tags": ["python", "code"]},
+            {"title": "Note 2", "content": "C", "category": "work", "tags": ["python", "tutorial"]},
+            {"title": "Note 3", "content": "C", "category": "work", "tags": ["javascript", "code"]},
         ]
         
         for note in notes:
@@ -770,9 +821,9 @@ class TestTagsEndpoints:
     def test_get_notes_by_tag(self):
         """Test GET /tags/{tag_name}/notes"""
         notes = [
-            {"title": "Python 1", "content": "Content", "category": "Learning", "tags": ["python", "programming"]},
-            {"title": "Python 2", "content": "Content", "category": "Learning", "tags": ["python"]},
-            {"title": "JavaScript", "content": "Content", "category": "Learning", "tags": ["javascript", "programming"]},
+            {"title": "Python 1", "content": "Content", "category": "school", "tags": ["python", "programming"]},
+            {"title": "Python 2", "content": "Content", "category": "school", "tags": ["python"]},
+            {"title": "JavaScript", "content": "Content", "category": "school", "tags": ["javascript", "programming"]},
         ]
         
         for note in notes:
@@ -810,10 +861,10 @@ class TestCategoriesEndpoints:
     def test_list_categories_sorted(self):
         """Test that categories are returned sorted"""
         notes = [
-            {"title": "N1", "content": "C", "category": "Zebra", "tags": []},
-            {"title": "N2", "content": "C", "category": "Apple", "tags": []},
-            {"title": "N3", "content": "C", "category": "Mango", "tags": []},
-            {"title": "N4", "content": "C", "category": "Apple", "tags": []},  # Duplicate category
+            {"title": "N1", "content": "C", "category": "work", "tags": []},
+            {"title": "N2", "content": "C", "category": "personal", "tags": []},
+            {"title": "N3", "content": "C", "category": "school", "tags": []},
+            {"title": "N4", "content": "C", "category": "personal", "tags": []},  # Duplicate category
         ]
         
         for note in notes:
@@ -823,24 +874,24 @@ class TestCategoriesEndpoints:
         assert response.status_code == 200
         data = response.json()
         # Should be unique and sorted
-        assert data == ["Apple", "Mango", "Zebra"]
+        assert data == ["personal", "school", "work"]
     
     def test_get_notes_by_category_endpoint(self):
         """Test GET /categories/{category_name}/notes"""
         notes = [
-            {"title": "Work 1", "content": "C", "category": "Work", "tags": []},
-            {"title": "Work 2", "content": "C", "category": "Work", "tags": []},
-            {"title": "Personal", "content": "C", "category": "Personal", "tags": []},
+            {"title": "Work 1", "content": "C", "category": "work", "tags": []},
+            {"title": "Work 2", "content": "C", "category": "work", "tags": []},
+            {"title": "Personal", "content": "C", "category": "personal", "tags": []},
         ]
         
         for note in notes:
             requests.post(f"{BASE_URL}/notes", json=note)
         
-        response = requests.get(f"{BASE_URL}/categories/Work/notes")
+        response = requests.get(f"{BASE_URL}/categories/work/notes")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 2
-        assert all(note["category"] == "Work" for note in data)
+        assert all(note["category"] == "work" for note in data)
     
     def test_get_notes_by_nonexistent_category(self):
         """Test getting notes by a category that doesn't exist"""
