@@ -122,6 +122,7 @@ Code durchsucht und Fehler nach rumprobieren behoben.
 ### Day 3
 
 #### 1. ✅ What did I accomplish?
+ Tags eingebaut, Parameter hinzugefügt, PUT und DELETE endpoints hinzugefügt
 
 
 
@@ -132,6 +133,8 @@ Code durchsucht und Fehler nach rumprobieren behoben.
 
 #### 2. 🚧 What challenges did I face?
 
+Zwischendurch verschiedene Fehlercodes gehabt darunter Internal Server Error 500
+
 
 
 
@@ -140,6 +143,8 @@ Code durchsucht und Fehler nach rumprobieren behoben.
 ---
 
 #### 3. 💡 How did I overcome them?
+
+KI gefragt und entpsrechende Fehler behoben.
 
 
 
@@ -153,6 +158,7 @@ Code durchsucht und Fehler nach rumprobieren behoben.
 ### Day 4
 
 #### 1. ✅ What did I accomplish?
+Post Endpunkte hinzugefügt, Modell zur Überprüfung hinzufügen, Pytest hinzufügen
 
 
 
@@ -163,6 +169,8 @@ Code durchsucht und Fehler nach rumprobieren behoben.
 
 #### 2. 🚧 What challenges did I face?
 
+Code hat teilweise nicht funktioniert. Test sind nicht bestanden worden
+
 
 
 
@@ -171,6 +179,7 @@ Code durchsucht und Fehler nach rumprobieren behoben.
 ---
 
 #### 3. 💡 How did I overcome them?
+Google suche und Frage an KI hat geholfen die Probleme zu beheben.
 
 
 
@@ -182,6 +191,7 @@ Code durchsucht und Fehler nach rumprobieren behoben.
 ### Day 5
 
 #### 1. ✅ What did I accomplish?
+Validatoren Funktionen hinzugefügt
 
 
 
@@ -191,6 +201,7 @@ Code durchsucht und Fehler nach rumprobieren behoben.
 ---
 
 #### 2. 🚧 What challenges did I face?
+Code schwer zu verstehen.
 
 
 
@@ -200,6 +211,7 @@ Code durchsucht und Fehler nach rumprobieren behoben.
 ---
 
 #### 3. 💡 How did I overcome them?
+KI und hilfe von Google haben geholfen die Aufgaben umzusetzen
 
 
 
