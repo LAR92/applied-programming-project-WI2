@@ -56,30 +56,21 @@ _Explain how you overcame the challenges or what help you needed._
 
 #### 1. ✅ What did I accomplish?
 
-Wir haben verschiedene Funktionen augebaut die sehr interessant waren.
+Heute habe ich mich mit den grundlegenden Funktionen und Konzepten des Moduls beschäftigt. Dabei wurden verschiedene erste Programmieraufgaben umgesetzt und wichtige Entwicklungswerkzeuge eingerichtet. Außerdem habe ich gelernt, wie die Arbeitsumgebung für das Projekt vorbereitet wird und wie erste Python-Funktionen erstellt und getestet werden.
 
-
-
+Zusätzlich konnte ich erste praktische Erfahrungen im Umgang mit der Entwicklungsumgebung sammeln und verstehen, wie die einzelnen Komponenten des Projekts miteinander zusammenarbeiten.
 
 ---
 
 #### 2. 🚧 What challenges did I face?
 
-Installation von Python aufgrund veralteter MacOS Version.
-
-
-
-
+Zu Beginn gab es Probleme bei der Installation von Python, da mein MacOS-System veraltet war und einige benötigte Komponenten nicht unterstützt wurden. Dadurch konnten bestimmte Befehle und Abhängigkeiten zunächst nicht korrekt installiert werden.
 
 ---
 
 #### 3. 💡 How did I overcome them?
 
-Update von MacOS und zusammenarbeit mit Kommolitionen 
-
-
-
-
+Ich habe mein MacOS-System aktualisiert und anschließend die Installation erneut durchgeführt. Zusätzlich habe ich mit Kommilitonen zusammengearbeitet, um die Fehler gemeinsam zu analysieren und Lösungen zu finden. Dadurch konnte ich die Entwicklungsumgebung erfolgreich einrichten.
 
 
 ---
@@ -88,7 +79,9 @@ Update von MacOS und zusammenarbeit mit Kommolitionen
 
 #### 1. ✅ What did I accomplish?
 
-Erfolgreich ein Notiz Managment System gebaut.
+Heute habe ich erfolgreich ein Notiz-Management-System entwickelt. Dabei wurden grundlegende Funktionen zum Erstellen, Speichern und Verwalten von Notizen implementiert. Außerdem habe ich gelernt, wie Daten strukturiert verarbeitet und in einer Anwendung organisiert werden können.
+
+Zusätzlich konnte ich praktische Erfahrungen im Arbeiten mit Backend-Logik und Benutzeroberflächen sammeln.
 
 
 
@@ -99,8 +92,7 @@ Erfolgreich ein Notiz Managment System gebaut.
 
 #### 2. 🚧 What challenges did I face?
 
-Verschiedene Fehler Codes in der Oberfläche bei Abfragen oder Stats von Notizen.
-
+Während der Entwicklung traten verschiedene Fehlercodes in der Benutzeroberfläche auf, besonders bei Abfragen und Statistiken der Notizen. Teilweise wurden Daten nicht korrekt geladen oder verarbeitet.
 
 
 
@@ -110,8 +102,7 @@ Verschiedene Fehler Codes in der Oberfläche bei Abfragen oder Stats von Notizen
 
 #### 3. 💡 How did I overcome them?
 
-Code durchsucht und Fehler nach rumprobieren behoben.
-
+Ich habe den Code Schritt für Schritt analysiert und verschiedene Lösungsansätze ausprobiert. Durch Debugging und mehrfaches Testen konnte ich die Fehler identifizieren und beheben. Dabei habe ich gelernt, wie wichtig saubere Fehlersuche und strukturierte Codeanalyse sind.
 
 
 
@@ -122,8 +113,9 @@ Code durchsucht und Fehler nach rumprobieren behoben.
 ### Day 3
 
 #### 1. ✅ What did I accomplish?
- Tags eingebaut, Parameter hinzugefügt, PUT und DELETE endpoints hinzugefügt
+ Heute habe ich zusätzliche Funktionen wie Tags und neue Parameter integriert. Außerdem wurden PUT- und DELETE-Endpunkte implementiert, um Daten aktualisieren und löschen zu können.
 
+Dadurch habe ich ein besseres Verständnis für REST-APIs und die Arbeit erhalten. Zusätzlich konnte ich lernen, wie Backend-Endpunkte strukturiert aufgebaut werden.
 
 
 
@@ -133,7 +125,7 @@ Code durchsucht und Fehler nach rumprobieren behoben.
 
 #### 2. 🚧 What challenges did I face?
 
-Zwischendurch verschiedene Fehlercodes gehabt darunter Internal Server Error 500
+Während der Entwicklung traten mehrere Fehler auf, darunter auch Internal Server Errors (HTTP 500). Dadurch funktionierten einige API-Endpunkte zunächst nicht korrekt.
 
 
 
@@ -144,8 +136,7 @@ Zwischendurch verschiedene Fehlercodes gehabt darunter Internal Server Error 500
 
 #### 3. 💡 How did I overcome them?
 
-KI gefragt und entpsrechende Fehler behoben.
-
+Ich habe Dokumentationen gelesen und zusätzlich KI-Tools genutzt, um die Ursachen der Fehler besser zu verstehen. Anschließend habe ich die problematischen Codebereiche angepasst und getestet, bis die Endpunkte korrekt funktioniert haben.
 
 
 
@@ -158,8 +149,9 @@ KI gefragt und entpsrechende Fehler behoben.
 ### Day 4
 
 #### 1. ✅ What did I accomplish?
-Post Endpunkte hinzugefügt, Modell zur Überprüfung hinzufügen, Pytest hinzufügen
+Heute habe ich weitere POST-Endpunkte hinzugefügt und Modelle zur Datenüberprüfung integriert. Außerdem habe ich begonnen, automatisierte Tests mit Pytest einzubauen.
 
+Dadurch konnte ich lernen, wie wichtig Testing für die Stabilität und Qualität einer Anwendung ist.
 
 
 
@@ -169,8 +161,7 @@ Post Endpunkte hinzugefügt, Modell zur Überprüfung hinzufügen, Pytest hinzuf
 
 #### 2. 🚧 What challenges did I face?
 
-Code hat teilweise nicht funktioniert. Test sind nicht bestanden worden
-
+Einige Teile des Codes funktionierten nicht wie erwartet und mehrere Tests wurden nicht bestanden. Besonders schwierig war es, die Ursachen der fehlerhaften Testausgaben zu identifizieren.
 
 
 
@@ -179,8 +170,7 @@ Code hat teilweise nicht funktioniert. Test sind nicht bestanden worden
 ---
 
 #### 3. 💡 How did I overcome them?
-Google suche und Frage an KI hat geholfen die Probleme zu beheben.
-
+Durch Google-Recherche, Dokumentationen und die Unterstützung von KI-Tools konnte ich die Fehler analysieren und beheben. Zusätzlich habe ich gelernt, wie man Testfehler interpretiert und systematisch korrigiert.
 
 
 
@@ -191,7 +181,9 @@ Google suche und Frage an KI hat geholfen die Probleme zu beheben.
 ### Day 5
 
 #### 1. ✅ What did I accomplish?
-Validatoren Funktionen hinzugefügt
+Heute habe ich verschiedene Validator-Funktionen implementiert, um Eingaben und Daten besser zu überprüfen. Dadurch konnte die Stabilität und Zuverlässigkeit der Anwendung verbessert werden.
+
+Außerdem habe ich gelernt, wie Validierung im Backend eingesetzt wird, um fehlerhafte Daten frühzeitig abzufangen.
 
 
 
@@ -201,7 +193,7 @@ Validatoren Funktionen hinzugefügt
 ---
 
 #### 2. 🚧 What challenges did I face?
-Code schwer zu verstehen.
+Teilweise war der Code schwer verständlich, insbesondere die Logik hinter den Validatoren und deren Zusammenspiel mit anderen Komponenten der Anwendung.
 
 
 
@@ -211,7 +203,7 @@ Code schwer zu verstehen.
 ---
 
 #### 3. 💡 How did I overcome them?
-KI und hilfe von Google haben geholfen die Aufgaben umzusetzen
+Ich habe zusätzliche Informationen über Google recherchiert und KI-Unterstützung genutzt, um die Funktionsweise besser zu verstehen. Durch praktische Beispiele und eigenes Ausprobieren konnte ich die Aufgaben erfolgreich umsetzen.
 
 
 
@@ -223,6 +215,9 @@ KI und hilfe von Google haben geholfen die Aufgaben umzusetzen
 ### Day 6
 
 #### 1. ✅ What did I accomplish?
+Heute habe ich Decorators in das Projekt eingebaut und die Test-Suite ausprobiert. Dabei habe ich gelernt, wie Decorators verwendet werden können, um Funktionen effizient zu erweitern.
+
+Zusätzlich habe ich die bestehenden Tests ausgeführt und überprüft, ob die bisherigen Funktionen weiterhin korrekt arbeiten.
 
 
 
@@ -232,7 +227,7 @@ KI und hilfe von Google haben geholfen die Aufgaben umzusetzen
 ---
 
 #### 2. 🚧 What challenges did I face?
-
+An diesem Tag traten keine größeren Probleme auf und die Aufgaben konnten ohne größere Schwierigkeiten umgesetzt werden.
 
 
 
@@ -241,6 +236,7 @@ KI und hilfe von Google haben geholfen die Aufgaben umzusetzen
 ---
 
 #### 3. 💡 How did I overcome them?
+Da keine größeren Probleme aufgetreten sind, war keine besondere Problemlösung notwendig. Stattdessen konnte ich mich darauf konzentrieren, die neuen Konzepte besser zu verstehen und anzuwenden.
 
 
 
@@ -254,6 +250,9 @@ KI und hilfe von Google haben geholfen die Aufgaben umzusetzen
 ### Day 7
 
 #### 1. ✅ What did I accomplish?
+Heute habe ich eine Streamlit-Testanwendung entwickelt und ein erstes Frontend für die NotesAPI erstellt. Dabei konnte ich lernen, wie Backend und Frontend miteinander verbunden werden.
+
+Außerdem habe ich erste Erfahrungen mit der Entwicklung von Benutzeroberflächen gesammelt und verstanden, wie API-Daten im Frontend dargestellt werden.
 
 
 
@@ -263,6 +262,7 @@ KI und hilfe von Google haben geholfen die Aufgaben umzusetzen
 ---
 
 #### 2. 🚧 What challenges did I face?
+Beim Aufbau des Frontends für die NotesAPI gab es verschiedene Probleme, insbesondere bei der Verbindung zwischen Frontend und Backend sowie bei der Darstellung der Daten.
 
 
 
@@ -272,6 +272,7 @@ KI und hilfe von Google haben geholfen die Aufgaben umzusetzen
 ---
 
 #### 3. 💡 How did I overcome them?
+Ich habe im Internet recherchiert und zusätzlich KI-Unterstützung verwendet, um Lösungen für die Probleme zu finden. Durch schrittweises Testen und Anpassen des Codes konnte ich die Fehler beheben und das Frontend erfolgreich fertigstellen.
 
 
 
