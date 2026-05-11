@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from pydantic import BaseModel, Field, model_validator, field_validator
 from datetime import datetime, timezone
 import json
@@ -110,6 +110,19 @@ def get_session():
     with Session(engine) as session:
         yield session
 
+
+def parse_iso_datetime(value: Optional[str], param_name: str) -> Optional[datetime]:
+    if value is None:
+        return None
+
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        raise HTTPException(
+            status_code=422,
+            detail={"loc": ["query", param_name], "msg": "Invalid datetime format", "type": "value_error"},
+        )
+
 # Dependency type alias for request handlers
 
 # Type alias for cleaner code
@@ -182,19 +195,6 @@ class NoteCreate(BaseModel):
                 seen.add(tag_normalized)
         
         return validated_tags
-    
-    @model_validator(mode="after")
-    def validate_work_category_requires_work_tag(self):
-        """
-        Cross-field validation: if category is "work", tags must contain "work".
-        This must be a model validator (not field validator) because it validates
-        the relationship between two different fields (category and tags).
-        Field validators can only access individual fields, while model validators
-        can access all fields and perform cross-field validation.
-        """
-        if self.category == "work" and "work" not in self.tags:
-            raise ValueError("work notes must include the 'work' tag")
-        return self
 
 # API Output model
 class NoteResponse(BaseModel):
@@ -317,7 +317,9 @@ def list_notes(
     session: SessionDep,
     category: str = None,
     search: str = None,
-    tag: str = None
+    tag: str = None,
+    created_after: Optional[str] = None,
+    created_before: Optional[str] = None,
 ) -> list[NoteResponse]:
     """List notes with filters"""
     
@@ -340,6 +342,14 @@ def list_notes(
     if tag:
         tag_lower = tag.lower()
         statement = statement.join(Note.tags).where(Tag.name == tag_lower)
+
+    if created_after:
+        created_after_dt = parse_iso_datetime(created_after, "created_after")
+        statement = statement.where(Note.created_at >= created_after_dt)
+
+    if created_before:
+        created_before_dt = parse_iso_datetime(created_before, "created_before")
+        statement = statement.where(Note.created_at <= created_before_dt)
     
     # Execute query and return NoteResponse objects
     notes = session.exec(statement).all()
@@ -397,9 +407,9 @@ def get_notes_stats(session: SessionDep):
     top_tags = [
         {"tag": tag, "count": count}
         for tag, count in sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)
-    ]
+    ][:5]
 
-    unique_tags_count = len(tag_counts)
+    unique_tags_count = len(session.exec(select(Tag)).all())
 
     return {
         "total_notes": len(notes),
@@ -409,10 +419,15 @@ def get_notes_stats(session: SessionDep):
     }
 
 
-@app.get("/notes/{note_id:int}")
-def get_note(note_id: int, session: SessionDep) -> NoteResponse:
+@app.get("/notes/{note_id}")
+def get_note(note_id: str, session: SessionDep) -> NoteResponse:
     """Get a specific note by ID"""
-    statement = select(Note).where(Note.id == note_id)
+    try:
+        note_id_int = int(note_id)
+    except ValueError:
+        raise HTTPException(status_code=422, detail="note_id must be an integer")
+
+    statement = select(Note).where(Note.id == note_id_int)
     note = session.exec(statement).first()
     if not note:
         raise HTTPException(status_code=404, detail="Note not found")
@@ -425,23 +440,6 @@ def get_note(note_id: int, session: SessionDep) -> NoteResponse:
         created_at=note.created_at.isoformat()
     )
 
-@app.delete("/notes/{note_id:int}")
-def delete_note(note_id: int, session: SessionDep):
-    """Delete a note by ID"""
-    statement = select(Note).where(Note.id == note_id)
-    note = session.exec(statement).first()
-    if not note:
-        raise HTTPException(status_code=404, detail="Note not found")
-    session.delete(note)
-    session.commit()
-    return NoteResponse(
-        id=note.id,
-        title=note.title,
-        content=note.content,
-        category=note.category,
-        tags=[tag.name for tag in note.tags],
-        created_at=note.created_at.isoformat()
-    )    
 
 
 
@@ -507,14 +505,7 @@ def delete_note(note_id: int, session: SessionDep):
         raise HTTPException(status_code=404, detail="Note not found")
     session.delete(note)
     session.commit()
-    return NoteResponse(
-        id=note.id,
-        title=note.title,
-        content=note.content,
-        category=note.category,
-        tags=[tag.name for tag in note.tags],
-        created_at=note.created_at.isoformat()
-    )
+    return Response(status_code=204)
 
 # GET Endpoint um alle einzigartigen Tags aus allen Notizen zu bekommen
 @app.get("/tags")
