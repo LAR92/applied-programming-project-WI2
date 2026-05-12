@@ -36,6 +36,8 @@ st.write(st.session_state["text"])
 
 with st.expander('session state'):
     st.write(st.session_state)
+
+API_BASE_URL = "http://localhost:8000"
     
 st.title("Notes API Frontend")
 
