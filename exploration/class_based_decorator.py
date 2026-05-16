@@ -3,18 +3,18 @@ import time
 from pprint import pprint 
 
 
-#class based decorator example for teaching purpo
+# Beispiel fuer einen klassenbasierten Decorator aus dem Unterricht
 class Call_Counter: 
     def _init_ (self, func): 
         self.func = func
         self.count = 0 
     def _call_ (self, *arg, **kwargs): 
-        self.count += 1 #Bezug auf das Objekt selbst
+        self.count += 1 # Bezug auf das Objekt selbst
         print (f"[Call_Counter]  {self.func. _name_} has been called {self.count} times.")
         print (f"[Call_Counter] Arguments: args= {arg}, kwargs ={kwargs}")
         return self.func(*arg, **kwargs) 
 
-class Cache: #temporärer schneller Zwischenspeicher 
+class Cache: # temporaerer schneller Zwischenspeicher
 
     def _init_ (self, func): 
         self.func = func
@@ -44,14 +44,14 @@ class Cache: #temporärer schneller Zwischenspeicher
 @Cache
 def complicated_calculation(x, comment = "no comment"): 
     print (f"Performing complicated calculation for {x}...")
-    time.sleep(2)  # Simulate a time-consuming calculation
+    time.sleep(2)  # Hier wird eine langsame Rechnung simuliert
     return x * x 
 
 
 @Cache
 def complicated_calculation_2(x, comment = "no comment"): 
     print (f"Performing complicated calculation 2 for {x}...")
-    time.sleep(2)  # Simulate a time-consuming calculation
+    time.sleep(2)  # Hier wird eine langsame Rechnung simuliert
     return x + x 
 
 
@@ -88,7 +88,7 @@ pprint (complicated_calculation_2.history)
 
 
 
-#example usage 
+# Beispiel zur Nutzung
 if False and _name_ == "_main_": 
     @Call_Counter
     def greet(name:str, greeting:str = "Hello"): 

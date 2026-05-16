@@ -8,7 +8,7 @@ def request_no():
     response_json = response.json()
     return response_json["reason"]
 
-# Initialization
+# Startwerte setzen
 if 'text1' not in st.session_state:
     st.session_state['text1'] = request_no()
     print("init Text1")
@@ -41,7 +41,7 @@ API_BASE_URL = "http://localhost:8000"
     
 st.title("Notes API Frontend")
 
-# Function to fetch all notes
+# Funktion, um alle Notizen zu laden
 def get_all_notes():
     try:
         response = requests.get(f"{API_BASE_URL}/notes")
@@ -51,7 +51,7 @@ def get_all_notes():
         st.error(f"Error fetching notes: {e}")
         return []
 
-# Function to create a new note
+# Funktion, um eine neue Notiz zu erstellen
 def create_note(title, content, category, tags):
     note_data = {
         "title": title,
@@ -67,25 +67,25 @@ def create_note(title, content, category, tags):
         st.error(f"Error creating note: {e}")
         return None
 
-# Initialize session state for notes cache
+# Session-State fuer Notizen vorbereiten
 if 'notes' not in st.session_state:
     st.session_state.notes = []
 
-# Function 1: Show all notes
+# Teil 1: alle Notizen anzeigen
 st.header("All Notes")
 
-# Button to refresh notes
+# Button zum Neuladen der Notizen
 if st.button("Refresh Notes"):
     st.session_state.notes = get_all_notes()
     st.rerun()
 
-# Display notes if available
+# Notizen anzeigen, falls welche da sind
 if st.session_state.notes:
-    # Create a selectbox for note titles
+    # Auswahlbox mit den Notiztiteln erstellen
     note_titles = [note['title'] for note in st.session_state.notes]
     selected_title = st.selectbox("Select a note to view details:", note_titles)
 
-    # Find the selected note
+    # Die ausgewaehlte Notiz suchen
     selected_note = next((note for note in st.session_state.notes if note['title'] == selected_title), None)
 
     if selected_note:
@@ -97,7 +97,7 @@ if st.session_state.notes:
 else:
     st.write("No notes available. Click 'Refresh Notes' to load them.")
 
-# Function 2: Create a new note
+# Teil 2: neue Notiz erstellen
 st.header("Create New Note")
 
 with st.form("create_note_form"):
@@ -112,14 +112,14 @@ with st.form("create_note_form"):
         if not title or not content or not category:
             st.error("Title, Content, and Category are required!")
         else:
-            # Parse tags
+            # Tags aus dem Textfeld holen
             tags = [tag.strip() for tag in tags_input.split(',') if tag.strip()]
 
-            # Create the note
+            # Notiz erstellen
             new_note = create_note(title, content, category, tags)
             if new_note:
                 st.success(f"Note '{new_note['title']}' created successfully!")
 
-                # Refresh the notes list to include the new note
+                # Notizenliste neu laden, damit die neue Notiz sichtbar ist
                 st.session_state.notes = get_all_notes()
                 st.rerun()

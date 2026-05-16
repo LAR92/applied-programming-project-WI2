@@ -6,13 +6,13 @@ import os
 BASE_URL = "http://localhost:8000"
 
 # ============================================================================
-# FIXTURE: Clear database before and after each test
+# Fixture: Die Datenbank wird vor und nach jedem Test geleert.
 # ============================================================================
 
 @pytest.fixture(autouse=True)
 def cleanup_database():
-    """Clear the database before each test"""
-    # Before test
+    """Prueft einen einfachen Testfall fuer die API."""
+    # Vor dem Test wird aufgeraeumt.
     try:
         response = requests.get(f"{BASE_URL}/notes")
         if response.status_code == 200:
@@ -24,7 +24,7 @@ def cleanup_database():
     
     yield
     
-    # After test - also cleanup
+    # Nach dem Test wird nochmal aufgeraeumt.
     try:
         response = requests.get(f"{BASE_URL}/notes")
         if response.status_code == 200:
@@ -36,22 +36,22 @@ def cleanup_database():
 
 
 # ============================================================================
-# SIMPLE ENDPOINTS TESTS
+# Einfache Tests fuer Endpunkte.
 # ============================================================================
 
 class TestSimpleEndpoints:
-    """Test basic greeting and calculation endpoints"""
+    """Prueft einen einfachen Testfall fuer die API."""
     
     def test_root_endpoint(self):
-        """Test GET / returns correct message"""
+        """Prueft einen einfachen Testfall fuer die API."""
         response = requests.get(f"{BASE_URL}/")
         assert response.status_code == 200
         data = response.json()
-        # The root endpoint returns "Hello, World!" (with comma)
+        # Einfacher Hinweis: Hier wird dieser Testschritt vorbereitet oder geprueft.
         assert "Hello" in data["message"] and "World" in data["message"]
     
     def test_greet_name_endpoint(self):
-        """Test GET /name/{name} with various names"""
+        """Prueft einen einfachen Testfall fuer die API."""
         test_names = ["Alice", "Bob", "Charlie", "Anna", "Max"]
         for name in test_names:
             response = requests.get(f"{BASE_URL}/name/{name}")
@@ -60,7 +60,7 @@ class TestSimpleEndpoints:
             assert data["message"] == f"Hello, {name}!"
     
     def test_greet_name_with_special_chars(self):
-        """Test GET /name with special characters"""
+        """Prueft einen einfachen Testfall fuer die API."""
         test_cases = ["Müller", "José", "François", "Björn"]
         for name in test_cases:
             response = requests.get(f"{BASE_URL}/name/{name}")
@@ -69,7 +69,7 @@ class TestSimpleEndpoints:
             assert data["message"] == f"Hello, {name}!"
     
     def test_calculate_endpoint(self):
-        """Test GET /calculate/{number} with various numbers"""
+        """Prueft einen einfachen Testfall fuer die API."""
         test_cases = [
             (0, 5),      # 0 * 2 + 5 = 5
             (5, 15),     # 5 * 2 + 5 = 15
@@ -81,20 +81,20 @@ class TestSimpleEndpoints:
             response = requests.get(f"{BASE_URL}/calculate/{number}")
             assert response.status_code == 200
             data = response.json()
-            # The API returns floats, so we convert to float for comparison
+            # Einfacher Hinweis: Hier wird dieser Testschritt vorbereitet oder geprueft.
             assert f"Der verrechnete Wert von {float(number)}" in data["message"]
             assert str(float(expected_result)) in data["message"]
 
 
 # ============================================================================
-# CREATE NOTE TESTS
+# Tests zum Erstellen von Notizen.
 # ============================================================================
 
 class TestCreateNote:
-    """Test POST /notes endpoint"""
+    """Prueft einen einfachen Testfall fuer die API."""
     
     def test_create_simple_note(self):
-        """Test creating a note with title, content, category"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Einkaufslist",
             "content": "Milch, Brot, Eier, Käse",
@@ -112,7 +112,7 @@ class TestCreateNote:
         assert "created_at" in data
     
     def test_create_note_with_tags(self):
-        """Test creating a note with multiple tags"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Python Lernen",
             "content": "FastAPI, SQLModel, Testing",
@@ -125,7 +125,7 @@ class TestCreateNote:
         assert set(data["tags"]) == {"python", "programming", "fastapi"}
     
     def test_create_note_with_case_insensitive_tags(self):
-        """Test that tags are normalized to lowercase"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Test Tags",
             "content": "Testing tag normalization",
@@ -135,11 +135,11 @@ class TestCreateNote:
         response = requests.post(f"{BASE_URL}/notes", json=payload)
         assert response.status_code == 201
         data = response.json()
-        # Tags should be lowercased
+        # Einfacher Hinweis: Hier wird dieser Testschritt vorbereitet oder geprueft.
         assert set(data["tags"]) == {"python", "programming", "fastapi"}
     
     def test_create_note_with_duplicate_tags(self):
-        """Test that duplicate tags are deduplicated"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Duplicate Tags",
             "content": "Testing duplicate handling",
@@ -152,8 +152,8 @@ class TestCreateNote:
         assert data["tags"] == ["python"]
     
     def test_create_note_with_long_content(self):
-        """Test creating a note with very long content"""
-        long_content = ("Lorem ipsum " * 799).rstrip()  # About 9599 characters, no trailing space
+        """Prueft einen einfachen Testfall fuer die API."""
+        long_content = ("Lorem ipsum " * 799).rstrip()  # Einfacher Hinweis: Hier wird dieser Testschritt vorbereitet oder geprueft.
         payload = {
             "title": "Long Note",
             "content": long_content,
@@ -166,7 +166,7 @@ class TestCreateNote:
         assert data["content"] == long_content
     
     def test_create_note_with_unicode(self):
-        """Test creating notes with unicode characters in title/content (but valid tags)"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Ünïçödé Têxt 中文 العربية",
             "content": "こんにちは мир 🚀 🎉",
@@ -180,77 +180,77 @@ class TestCreateNote:
         assert data["content"] == payload["content"]
     
     def test_create_note_with_invalid_title_too_short(self):
-        """Test creating a note with title too short"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
-            "title": "Hi",  # Too short (min 3 chars)
+            "title": "Hi",  # zu kurz (min 3 chars)
             "content": "Valid content",
             "category": "work",
             "tags": []
         }
         response = requests.post(f"{BASE_URL}/notes", json=payload)
-        assert response.status_code == 422  # Validation error
+        assert response.status_code == 422  # Hier wird ein Validierungsfehler erwartet.
     
     def test_create_note_with_invalid_title_too_long(self):
-        """Test creating a note with title too long"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
-            "title": "A" * 101,  # Too long (max 100 chars)
+            "title": "A" * 101,  # zu lang (max 100 chars)
             "content": "Valid content",
             "category": "work",
             "tags": []
         }
         response = requests.post(f"{BASE_URL}/notes", json=payload)
-        assert response.status_code == 422  # Validation error
+        assert response.status_code == 422  # Hier wird ein Validierungsfehler erwartet.
     
     def test_create_note_with_invalid_content_too_long(self):
-        """Test creating a note with content too long"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Valid Title",
-            "content": "A" * 10001,  # Too long (max 10000 chars)
+            "content": "A" * 10001,  # zu lang (max 10000 chars)
             "category": "work",
             "tags": []
         }
         response = requests.post(f"{BASE_URL}/notes", json=payload)
-        assert response.status_code == 422  # Validation error
+        assert response.status_code == 422  # Hier wird ein Validierungsfehler erwartet.
     
     def test_create_note_with_invalid_category_too_short(self):
-        """Test creating a note with category too short"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Valid Title",
             "content": "Valid content",
-            "category": "a",  # Too short (min 2 chars)
+            "category": "a",  # zu kurz (min 2 chars)
             "tags": []
         }
         response = requests.post(f"{BASE_URL}/notes", json=payload)
-        assert response.status_code == 422  # Validation error
+        assert response.status_code == 422  # Hier wird ein Validierungsfehler erwartet.
     
     def test_create_note_with_too_many_tags(self):
-        """Test creating a note with too many tags"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Valid Title",
             "content": "Valid content",
             "category": "work",
-            "tags": [f"tag{i}" for i in range(11)]  # 11 tags (max 10)
+            "tags": [f"tag{i}" for i in range(11)]  # Einfacher Hinweis: Hier wird dieser Testschritt vorbereitet oder geprueft.
         }
         response = requests.post(f"{BASE_URL}/notes", json=payload)
-        assert response.status_code == 422  # Validation error
+        assert response.status_code == 422  # Hier wird ein Validierungsfehler erwartet.
     
     def test_create_note_with_whitespace_stripping(self):
-        """Test that whitespace is stripped from string fields"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "  Valid Title  ",
             "content": "  Valid content  ",
             "category": "work",
-            "tags": [" work ", " tag2 "]  # Include 'work' tag for work category
+            "tags": [" work ", " tag2 "]  # Bei Kategorie work wird auch der Tag work benutzt.
         }
         response = requests.post(f"{BASE_URL}/notes", json=payload)
         assert response.status_code == 201
         data = response.json()
         assert data["title"] == "Valid Title"  # Whitespace stripped
         assert data["content"] == "Valid content"  # Whitespace stripped
-        assert data["tags"] == ["work", "tag2"]  # Whitespace stripped from tags
+        assert data["tags"] == ["work", "tag2"]  # Einfacher Hinweis: Hier wird dieser Testschritt vorbereitet oder geprueft.
     
     def test_create_work_note_with_work_tag_passing(self):
-        """Test creating a work note with work tag (should pass)"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Work Meeting",
             "content": "Discuss project timeline",
@@ -261,18 +261,18 @@ class TestCreateNote:
         assert response.status_code == 201
     
     def test_create_work_note_without_work_tag_failing(self):
-        """Test creating a work note without work tag (should fail)"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Work Meeting",
             "content": "Discuss project timeline",
             "category": "work",
-            "tags": ["meeting", "urgent"]  # Missing "work" tag
+            "tags": ["meeting", "urgent"]  # Einfacher Hinweis: Hier wird dieser Testschritt vorbereitet oder geprueft.
         }
         response = requests.post(f"{BASE_URL}/notes", json=payload)
-        assert response.status_code == 422  # Validation error
+        assert response.status_code == 422  # Hier wird ein Validierungsfehler erwartet.
     
     def test_create_non_work_note_without_work_tag_passing(self):
-        """Test creating a non-work note without work tag (should pass)"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Personal Note",
             "content": "Remember to buy groceries",
@@ -284,22 +284,22 @@ class TestCreateNote:
 
 
 # ============================================================================
-# LIST/GET NOTES TESTS
+# Tests zum Auflisten und Laden von Notizen.
 # ============================================================================
 
 class TestListNotes:
-    """Test GET /notes endpoint with various filters"""
+    """Prueft einen einfachen Testfall fuer die API."""
     
     def test_list_empty_notes(self):
-        """Test listing notes when database is empty"""
+        """Prueft einen einfachen Testfall fuer die API."""
         response = requests.get(f"{BASE_URL}/notes")
         assert response.status_code == 200
         data = response.json()
         assert data == []
     
     def test_list_all_notes(self):
-        """Test listing all created notes"""
-        # Create test notes
+        """Prueft einen einfachen Testfall fuer die API."""
+        # Einfacher Hinweis: Hier wird dieser Testschritt vorbereitet oder geprueft.
         notes_data = [
             {"title": "Note 1", "content": "Content 1", "category": "work", "tags": ["work"]},
             {"title": "Note 2", "content": "Content 2", "category": "personal", "tags": ["personal"]},
@@ -316,8 +316,8 @@ class TestListNotes:
         assert all("id" in note for note in data)
     
     def test_list_notes_filter_by_category(self):
-        """Test filtering notes by category"""
-        # Create notes with different categories
+        """Prueft einen einfachen Testfall fuer die API."""
+        # Notizen mit verschiedenen Kategorien erstellen.
         notes = [
             {"title": "Work 1", "content": "Work content 1", "category": "work", "tags": []},
             {"title": "Work 2", "content": "Work content 2", "category": "work", "tags": []},
@@ -334,7 +334,7 @@ class TestListNotes:
         assert all(note["category"] == "work" for note in data)
     
     def test_list_notes_filter_by_search(self):
-        """Test searching notes by title or content"""
+        """Prueft einen einfachen Testfall fuer die API."""
         notes = [
             {"title": "Python Tutorial", "content": "Learn Python basics", "category": "Learn", "tags": []},
             {"title": "JavaScript Guide", "content": "Python vs JavaScript", "category": "Learn", "tags": []},
@@ -344,24 +344,24 @@ class TestListNotes:
         for note in notes:
             requests.post(f"{BASE_URL}/notes", json=note)
         
-        # Search for "Python" - should find 2 notes
+        # Nach Python suchen, es sollten zwei Notizen passen.
         response = requests.get(f"{BASE_URL}/notes?search=Python")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 2
         
-        # Search for "SQLite" - should find 1 note
+        # Nach SQLite suchen, es sollte eine Notiz passen.
         response = requests.get(f"{BASE_URL}/notes?search=SQLite")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
     
     def test_list_notes_search_case_insensitive(self):
-        """Test that search is case-insensitive"""
+        """Prueft einen einfachen Testfall fuer die API."""
         note = {"title": "Python Guide", "content": "Content", "category": "Tech", "tags": []}
         requests.post(f"{BASE_URL}/notes", json=note)
         
-        # Search with different cases
+        # Die Suche mit verschiedener Gross- und Kleinschreibung testen.
         for search_term in ["python", "PYTHON", "Python", "pYtHoN"]:
             response = requests.get(f"{BASE_URL}/notes?search={search_term}")
             assert response.status_code == 200
@@ -369,7 +369,7 @@ class TestListNotes:
             assert len(data) == 1
     
     def test_list_notes_filter_by_tag(self):
-        """Test filtering notes by tag"""
+        """Prueft einen einfachen Testfall fuer die API."""
         notes = [
             {"title": "Note 1", "content": "Content 1", "category": "Work", "tags": ["urgent", "work"]},
             {"title": "Note 2", "content": "Content 2", "category": "Work", "tags": ["urgent"]},
@@ -379,7 +379,7 @@ class TestListNotes:
         for note in notes:
             requests.post(f"{BASE_URL}/notes", json=note)
         
-        # Filter by tag "urgent" - should find 2 notes
+        # Nach dem Tag urgent filtern, es sollten zwei Notizen passen.
         response = requests.get(f"{BASE_URL}/notes?tag=urgent")
         assert response.status_code == 200
         data = response.json()
@@ -387,18 +387,18 @@ class TestListNotes:
         assert all("urgent" in note["tags"] for note in data)
     
     def test_list_notes_filter_by_tag_case_insensitive(self):
-        """Test that tag filtering is case-insensitive"""
+        """Prueft einen einfachen Testfall fuer die API."""
         note = {"title": "Test", "content": "Content", "category": "Work", "tags": ["URGENT"]}
         requests.post(f"{BASE_URL}/notes", json=note)
         
-        # Search with different cases
+        # Die Suche mit verschiedener Gross- und Kleinschreibung testen.
         response = requests.get(f"{BASE_URL}/notes?tag=urgent")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
     
     def test_list_notes_combined_filters(self):
-        """Test combining multiple filters"""
+        """Prueft einen einfachen Testfall fuer die API."""
         notes = [
             {"title": "Python Work", "content": "Work with Python", "category": "Work", "tags": ["python"]},
             {"title": "Python Personal", "content": "Python hobby", "category": "Personal", "tags": ["python"]},
@@ -408,7 +408,7 @@ class TestListNotes:
         for note in notes:
             requests.post(f"{BASE_URL}/notes", json=note)
         
-        # Filter by category AND search
+        # Kategorie und Suche zusammen benutzen.
         response = requests.get(f"{BASE_URL}/notes?category=Work&search=Python")
         assert response.status_code == 200
         data = response.json()
@@ -417,14 +417,14 @@ class TestListNotes:
 
 
 # ============================================================================
-# GET SINGLE NOTE TESTS
+# Tests fuer eine einzelne Notiz.
 # ============================================================================
 
 class TestGetSingleNote:
-    """Test GET /notes/{note_id} endpoint"""
+    """Prueft einen einfachen Testfall fuer die API."""
     
     def test_get_existing_note(self):
-        """Test retrieving an existing note by ID"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Test Note",
             "content": "Test content",
@@ -443,14 +443,14 @@ class TestGetSingleNote:
         assert data["category"] == "Test"
     
     def test_get_nonexistent_note(self):
-        """Test retrieving a note that doesn't exist"""
+        """Prueft einen einfachen Testfall fuer die API."""
         response = requests.get(f"{BASE_URL}/notes/9999")
         assert response.status_code == 404
         data = response.json()
         assert "detail" in data
     
     def test_get_note_with_multiple_tags(self):
-        """Test retrieving a note with multiple tags"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Tagged Note",
             "content": "Content",
@@ -467,15 +467,15 @@ class TestGetSingleNote:
 
 
 # ============================================================================
-# UPDATE NOTE TESTS (PUT)
+# Tests zum Aktualisieren mit PUT.
 # ============================================================================
 
 class TestUpdateNote:
-    """Test PUT /notes/{note_id} endpoint"""
+    """Prueft einen einfachen Testfall fuer die API."""
     
     def test_update_all_fields(self):
-        """Test updating all fields of a note"""
-        # Create note
+        """Prueft einen einfachen Testfall fuer die API."""
+        # Notiz erstellen
         payload = {
             "title": "Original Title",
             "content": "Original content",
@@ -485,7 +485,7 @@ class TestUpdateNote:
         create_response = requests.post(f"{BASE_URL}/notes", json=payload)
         note_id = create_response.json()["id"]
         
-        # Update all fields
+        # Alle Felder aktualisieren.
         update_payload = {
             "title": "Updated Title",
             "content": "Updated content",
@@ -501,7 +501,7 @@ class TestUpdateNote:
         assert set(data["tags"]) == {"new", "updated"}
     
     def test_update_title_only(self):
-        """Test updating only the title"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Original",
             "content": "Content",
@@ -511,11 +511,11 @@ class TestUpdateNote:
         create_response = requests.post(f"{BASE_URL}/notes", json=payload)
         note_id = create_response.json()["id"]
         
-        # Update - must provide all required fields for PUT
+        # Einfacher Hinweis: Hier wird dieser Testschritt vorbereitet oder geprueft.
         update_payload = {
             "title": "New Title",
-            "content": "Content",  # Keep same
-            "category": "Cat",      # Keep same
+            "content": "Content",  # Gleich lassen.
+            "category": "Cat",      # Gleich lassen.
             "tags": []
         }
         response = requests.put(f"{BASE_URL}/notes/{note_id}", json=update_payload)
@@ -524,7 +524,7 @@ class TestUpdateNote:
         assert data["title"] == "New Title"
     
     def test_update_nonexistent_note(self):
-        """Test updating a note that doesn't exist"""
+        """Prueft einen einfachen Testfall fuer die API."""
         update_payload = {
             "title": "Title",
             "content": "Content",
@@ -535,7 +535,7 @@ class TestUpdateNote:
         assert response.status_code == 404
     
     def test_update_tags(self):
-        """Test updating tags"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Test",
             "content": "Content",
@@ -558,14 +558,14 @@ class TestUpdateNote:
 
 
 # ============================================================================
-# PARTIAL UPDATE NOTE TESTS (PATCH)
+# Tests zum teilweise Aktualisieren mit PATCH.
 # ============================================================================
 
 class TestPatchNote:
-    """Test PATCH /notes/{note_id} endpoint"""
+    """Prueft einen einfachen Testfall fuer die API."""
     
     def test_patch_title_only(self):
-        """Test patching only the title"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Original",
             "content": "Original content",
@@ -576,18 +576,18 @@ class TestPatchNote:
         note_id = create_response.json()["id"]
         original_created_at = create_response.json()["created_at"]
         
-        # Patch only title
+        # Mit PATCH nur den Titel aendern.
         patch_payload = {"title": "Patched Title"}
         response = requests.patch(f"{BASE_URL}/notes/{note_id}", json=patch_payload)
         assert response.status_code == 200
         data = response.json()
         assert data["title"] == "Patched Title"
-        assert data["content"] == "Original content"  # Unchanged
-        assert data["category"] == "Original"          # Unchanged
-        assert data["tags"] == ["original"]            # Unchanged
+        assert data["content"] == "Original content"  # unveraendert
+        assert data["category"] == "Original"          # unveraendert
+        assert data["tags"] == ["original"]            # unveraendert
     
     def test_patch_content_only(self):
-        """Test patching only the content"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Original content",
@@ -601,12 +601,12 @@ class TestPatchNote:
         response = requests.patch(f"{BASE_URL}/notes/{note_id}", json=patch_payload)
         assert response.status_code == 200
         data = response.json()
-        assert data["title"] == "Title"           # Unchanged
+        assert data["title"] == "Title"           # unveraendert
         assert data["content"] == "New content"
-        assert data["category"] == "Cat"          # Unchanged
+        assert data["category"] == "Cat"          # unveraendert
     
     def test_patch_tags_only(self):
-        """Test patching only the tags"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
@@ -621,11 +621,11 @@ class TestPatchNote:
         assert response.status_code == 200
         data = response.json()
         assert set(data["tags"]) == {"new", "tags"}
-        assert data["title"] == "Title"      # Unchanged
-        assert data["content"] == "Content"  # Unchanged
+        assert data["title"] == "Title"      # unveraendert
+        assert data["content"] == "Content"  # unveraendert
     
     def test_patch_multiple_fields(self):
-        """Test patching multiple fields at once"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Original",
             "content": "Original",
@@ -644,11 +644,11 @@ class TestPatchNote:
         data = response.json()
         assert data["title"] == "Patched"
         assert set(data["tags"]) == {"patched", "updated"}
-        assert data["content"] == "Original"  # Unchanged
-        assert data["category"] == "Original" # Unchanged
+        assert data["content"] == "Original"  # unveraendert
+        assert data["category"] == "Original" # unveraendert
     
     def test_patch_empty_payload(self):
-        """Test patching with empty payload (no changes)"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
@@ -659,19 +659,19 @@ class TestPatchNote:
         note_id = create_response.json()["id"]
         original_data = create_response.json()
         
-        # Patch with empty dict
+        # Mit PATCH ein leeres Objekt senden.
         response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={})
         assert response.status_code == 200
         data = response.json()
-        # All fields should remain unchanged
+        # Alle Felder sollen gleich bleiben.
         assert data["title"] == original_data["title"]
         assert data["content"] == original_data["content"]
         assert data["category"] == original_data["category"]
     
-    # ====== NoteUpdate Constraint Tests ======
+    # Regeln fuer NoteUpdate testen.
     
     def test_patch_title_constraint_min_length(self):
-        """Test PATCH with title < 3 chars returns 422"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
@@ -681,7 +681,7 @@ class TestPatchNote:
         create_response = requests.post(f"{BASE_URL}/notes", json=payload)
         note_id = create_response.json()["id"]
         
-        # Try to patch with title that's too short
+        # Einen zu kurzen Titel mit PATCH testen.
         response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={"title": ""})
         assert response.status_code == 422
         
@@ -689,7 +689,7 @@ class TestPatchNote:
         assert response.status_code == 422
     
     def test_patch_title_constraint_max_length(self):
-        """Test PATCH with title > 100 chars returns 422"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
@@ -699,13 +699,13 @@ class TestPatchNote:
         create_response = requests.post(f"{BASE_URL}/notes", json=payload)
         note_id = create_response.json()["id"]
         
-        # Try to patch with title that's too long
+        # Einen zu langen Titel mit PATCH testen.
         long_title = "a" * 101
         response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={"title": long_title})
         assert response.status_code == 422
     
     def test_patch_content_constraint_min_length(self):
-        """Test PATCH with empty content returns 422"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
@@ -715,12 +715,12 @@ class TestPatchNote:
         create_response = requests.post(f"{BASE_URL}/notes", json=payload)
         note_id = create_response.json()["id"]
         
-        # Try to patch with empty content
+        # Leeren Inhalt mit PATCH testen.
         response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={"content": ""})
         assert response.status_code == 422
     
     def test_patch_content_constraint_max_length(self):
-        """Test PATCH with content > 10000 chars returns 422"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
@@ -730,13 +730,13 @@ class TestPatchNote:
         create_response = requests.post(f"{BASE_URL}/notes", json=payload)
         note_id = create_response.json()["id"]
         
-        # Try to patch with content that's too long
+        # Zu langen Inhalt mit PATCH testen.
         long_content = "a" * 10001
         response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={"content": long_content})
         assert response.status_code == 422
     
     def test_patch_category_constraint_min_length(self):
-        """Test PATCH with category < 2 chars returns 422"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
@@ -746,7 +746,7 @@ class TestPatchNote:
         create_response = requests.post(f"{BASE_URL}/notes", json=payload)
         note_id = create_response.json()["id"]
         
-        # Try to patch with category that's too short
+        # Zu kurze Kategorie mit PATCH testen.
         response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={"category": ""})
         assert response.status_code == 422
         
@@ -754,7 +754,7 @@ class TestPatchNote:
         assert response.status_code == 422
     
     def test_patch_category_constraint_max_length(self):
-        """Test PATCH with category > 30 chars returns 422"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
@@ -764,13 +764,13 @@ class TestPatchNote:
         create_response = requests.post(f"{BASE_URL}/notes", json=payload)
         note_id = create_response.json()["id"]
         
-        # Try to patch with category that's too long
+        # Zu lange Kategorie mit PATCH testen.
         long_category = "a" * 31
         response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={"category": long_category})
         assert response.status_code == 422
     
     def test_patch_tags_constraint_max_items(self):
-        """Test PATCH with > 10 tags returns 422"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
@@ -780,13 +780,13 @@ class TestPatchNote:
         create_response = requests.post(f"{BASE_URL}/notes", json=payload)
         note_id = create_response.json()["id"]
         
-        # Try to patch with too many tags
+        # Zu viele Tags mit PATCH testen.
         too_many_tags = [f"tag{i}" for i in range(11)]
         response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={"tags": too_many_tags})
         assert response.status_code == 422
     
     def test_patch_work_category_requires_work_tag(self):
-        """Test PATCH changing category to 'work' without 'work' tag returns 422"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
@@ -796,19 +796,19 @@ class TestPatchNote:
         create_response = requests.post(f"{BASE_URL}/notes", json=payload)
         note_id = create_response.json()["id"]
         
-        # Try to change category to work without 'work' tag (both provided)
+        # Kategorie work ohne work-Tag testen.
         response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={
             "category": "work",
             "tags": ["meeting"]
         })
         assert response.status_code == 422
         
-        # But partial update with just category should succeed (tags not provided)
+        # Nur die Kategorie zu aendern soll hier klappen.
         response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={"category": "work"})
         assert response.status_code == 200
     
     def test_patch_work_category_with_work_tag(self):
-        """Test PATCH changing category to work WITH work tag succeeds"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
@@ -818,7 +818,7 @@ class TestPatchNote:
         create_response = requests.post(f"{BASE_URL}/notes", json=payload)
         note_id = create_response.json()["id"]
         
-        # Change category and tags together, including 'work' tag
+        # Kategorie und Tags zusammen aendern, inklusive work-Tag.
         response = requests.patch(f"{BASE_URL}/notes/{note_id}", json={
             "category": "work",
             "tags": ["work", "meeting"]
@@ -829,20 +829,20 @@ class TestPatchNote:
         assert "work" in data["tags"]
     
     def test_patch_nonexistent_note(self):
-        """Test patching a note that doesn't exist"""
+        """Prueft einen einfachen Testfall fuer die API."""
         response = requests.patch(f"{BASE_URL}/notes/9999", json={"title": "New"})
         assert response.status_code == 404
 
 
 # ============================================================================
-# DELETE NOTE TESTS
+# Tests zum Loeschen von Notizen.
 # ============================================================================
 
 class TestDeleteNote:
-    """Test DELETE /notes/{note_id} endpoint"""
+    """Prueft einen einfachen Testfall fuer die API."""
     
     def test_delete_existing_note(self):
-        """Test deleting an existing note"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "To Delete",
             "content": "Content",
@@ -852,26 +852,26 @@ class TestDeleteNote:
         create_response = requests.post(f"{BASE_URL}/notes", json=payload)
         note_id = create_response.json()["id"]
         
-        # Verify note exists
+        # Pruefen, ob die Notiz existiert.
         response = requests.get(f"{BASE_URL}/notes/{note_id}")
         assert response.status_code == 200
         
-        # Delete note
+        # Notiz loeschen.
         response = requests.delete(f"{BASE_URL}/notes/{note_id}")
         assert response.status_code == 204 or response.status_code == 200
         
-        # Verify note is gone
+        # Pruefen, ob die Notiz weg ist.
         response = requests.get(f"{BASE_URL}/notes/{note_id}")
         assert response.status_code == 404
     
     def test_delete_nonexistent_note(self):
-        """Test deleting a note that doesn't exist"""
+        """Prueft einen einfachen Testfall fuer die API."""
         response = requests.delete(f"{BASE_URL}/notes/9999")
         assert response.status_code == 404
     
     def test_delete_note_removes_from_list(self):
-        """Test that deleted note is removed from list"""
-        # Create 3 notes
+        """Prueft einen einfachen Testfall fuer die API."""
+        # Drei Notizen erstellen.
         for i in range(3):
             payload = {
                 "title": f"Note {i}",
@@ -881,15 +881,15 @@ class TestDeleteNote:
             }
             requests.post(f"{BASE_URL}/notes", json=payload)
         
-        # List all notes - should be 3
+        # Alle Notizen laden, es sollten drei sein.
         response = requests.get(f"{BASE_URL}/notes")
         notes = response.json()
         note_id_to_delete = notes[0]["id"]
         
-        # Delete first note
+        # Die erste Notiz loeschen.
         requests.delete(f"{BASE_URL}/notes/{note_id_to_delete}")
         
-        # List again - should be 2
+        # Nochmal laden, es sollten zwei sein.
         response = requests.get(f"{BASE_URL}/notes")
         notes = response.json()
         assert len(notes) == 2
@@ -897,14 +897,14 @@ class TestDeleteNote:
 
 
 # ============================================================================
-# STATISTICS TESTS
+# Tests fuer Statistiken.
 # ============================================================================
 
 class TestNotesStats:
-    """Test GET /notes/stats endpoint"""
+    """Prueft einen einfachen Testfall fuer die API."""
     
     def test_stats_empty_database(self):
-        """Test stats when database is empty"""
+        """Prueft einen einfachen Testfall fuer die API."""
         response = requests.get(f"{BASE_URL}/notes/stats")
         assert response.status_code == 200
         data = response.json()
@@ -914,7 +914,7 @@ class TestNotesStats:
         assert data["unique_tags_count"] == 0
     
     def test_stats_single_note(self):
-        """Test stats with one note"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Test",
             "content": "Content",
@@ -932,7 +932,7 @@ class TestNotesStats:
         assert len(data["top_tags"]) == 1
     
     def test_stats_multiple_notes_categories(self):
-        """Test stats with multiple notes and categories"""
+        """Prueft einen einfachen Testfall fuer die API."""
         notes = [
             {"title": "Work 1", "content": "C", "category": "work", "tags": ["work"]},
             {"title": "Work 2", "content": "C", "category": "work", "tags": ["work"]},
@@ -952,7 +952,7 @@ class TestNotesStats:
         assert data["by_category"]["general"] == 1
     
     def test_stats_tag_frequency(self):
-        """Test that tags are counted correctly"""
+        """Prueft einen einfachen Testfall fuer die API."""
         notes = [
             {"title": "Note 1", "content": "C", "category": "work", "tags": ["work", "python", "code"]},
             {"title": "Note 2", "content": "C", "category": "work", "tags": ["work", "python", "tutorial"]},
@@ -966,7 +966,7 @@ class TestNotesStats:
         assert response.status_code == 200
         data = response.json()
         
-        # Find tag counts
+        # Tag-Zaehler suchen.
         tag_dict = {tag["tag"]: tag["count"] for tag in data["top_tags"]}
         assert tag_dict["python"] == 2
         assert tag_dict["code"] == 2
@@ -975,23 +975,23 @@ class TestNotesStats:
 
 
 # ============================================================================
-# TAGS ENDPOINTS TESTS
+# Tests fuer Tag-Endpunkte.
 # ============================================================================
 
 class TestTagsEndpoints:
-    """Test /tags endpoints"""
+    """Prueft einen einfachen Testfall fuer die API."""
     
     def test_list_tags_returns_list(self):
-        """Test that listing tags returns a list"""
+        """Prueft einen einfachen Testfall fuer die API."""
         response = requests.get(f"{BASE_URL}/tags")
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
-        # Tags are sorted
+        # Tags sind sortiert.
         assert data == sorted(data)
     
     def test_list_tags_with_created_notes(self):
-        """Test listing tags after creating notes with tags"""
+        """Prueft einen einfachen Testfall fuer die API."""
         notes = [
             {"title": "N1", "content": "C", "category": "Cat", "tags": ["zebra", "apple", "mango"]},
             {"title": "N2", "content": "C", "category": "Cat", "tags": ["banana"]},
@@ -1003,16 +1003,16 @@ class TestTagsEndpoints:
         response = requests.get(f"{BASE_URL}/tags")
         assert response.status_code == 200
         data = response.json()
-        # Our new tags should be in the list
+        # Die neuen Tags sollen in der Liste sein.
         assert "zebra" in data
         assert "apple" in data
         assert "mango" in data
         assert "banana" in data
-        # Verify it's sorted
+        # Pruefen, ob es sortiert ist.
         assert data == sorted(data)
     
     def test_get_notes_by_tag(self):
-        """Test GET /tags/{tag_name}/notes"""
+        """Prueft einen einfachen Testfall fuer die API."""
         notes = [
             {"title": "Python 1", "content": "Content", "category": "school", "tags": ["python", "programming"]},
             {"title": "Python 2", "content": "Content", "category": "school", "tags": ["python"]},
@@ -1022,7 +1022,7 @@ class TestTagsEndpoints:
         for note in notes:
             requests.post(f"{BASE_URL}/notes", json=note)
         
-        # Get notes with "python" tag
+        # Notizen mit dem Tag python laden.
         response = requests.get(f"{BASE_URL}/tags/python/notes")
         assert response.status_code == 200
         data = response.json()
@@ -1030,7 +1030,7 @@ class TestTagsEndpoints:
         assert all("python" in note["tags"] for note in data)
     
     def test_get_notes_by_nonexistent_tag(self):
-        """Test getting notes by a tag that doesn't exist"""
+        """Prueft einen einfachen Testfall fuer die API."""
         response = requests.get(f"{BASE_URL}/tags/nonexistent_unique_tag_xyz/notes")
         assert response.status_code == 200
         data = response.json()
@@ -1038,26 +1038,26 @@ class TestTagsEndpoints:
 
 
 # ============================================================================
-# CATEGORIES ENDPOINTS TESTS
+# Tests fuer Kategorie-Endpunkte.
 # ============================================================================
 
 class TestCategoriesEndpoints:
-    """Test /categories endpoints"""
+    """Prueft einen einfachen Testfall fuer die API."""
     
     def test_list_categories_empty(self):
-        """Test listing categories when database is empty"""
+        """Prueft einen einfachen Testfall fuer die API."""
         response = requests.get(f"{BASE_URL}/categories")
         assert response.status_code == 200
         data = response.json()
         assert data == []
     
     def test_list_categories_sorted(self):
-        """Test that categories are returned sorted"""
+        """Prueft einen einfachen Testfall fuer die API."""
         notes = [
             {"title": "N1", "content": "C", "category": "work", "tags": ["work"]},
             {"title": "N2", "content": "C", "category": "personal", "tags": []},
             {"title": "N3", "content": "C", "category": "school", "tags": []},
-            {"title": "N4", "content": "C", "category": "personal", "tags": []},  # Duplicate category
+            {"title": "N4", "content": "C", "category": "personal", "tags": []},  # Doppelte Kategorie.
         ]
         
         for note in notes:
@@ -1066,11 +1066,11 @@ class TestCategoriesEndpoints:
         response = requests.get(f"{BASE_URL}/categories")
         assert response.status_code == 200
         data = response.json()
-        # Should be unique and sorted
+        # Soll eindeutig und sortiert sein
         assert data == ["personal", "school", "work"]
     
     def test_get_notes_by_category_endpoint(self):
-        """Test GET /categories/{category_name}/notes"""
+        """Prueft einen einfachen Testfall fuer die API."""
         notes = [
             {"title": "Work 1", "content": "C", "category": "work", "tags": ["work"]},
             {"title": "Work 2", "content": "C", "category": "work", "tags": ["work"]},
@@ -1087,7 +1087,7 @@ class TestCategoriesEndpoints:
         assert all(note["category"] == "work" for note in data)
     
     def test_get_notes_by_nonexistent_category(self):
-        """Test getting notes by a category that doesn't exist"""
+        """Prueft einen einfachen Testfall fuer die API."""
         response = requests.get(f"{BASE_URL}/categories/NonExistent/notes")
         assert response.status_code == 200
         data = response.json()
@@ -1095,14 +1095,14 @@ class TestCategoriesEndpoints:
 
 
 # ============================================================================
-# TAG VALIDATION TESTS
+# Einfacher Hinweis: Hier wird dieser Testschritt vorbereitet oder geprueft.
 # ============================================================================
 
 class TestTagValidation:
-    """Test Tag model validation: name constraints and normalization"""
+    """Prueft einen einfachen Testfall fuer die API."""
     
     def test_tag_valid_simple(self):
-        """Test creating a note with a valid simple tag"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
@@ -1115,7 +1115,7 @@ class TestTagValidation:
         assert "work" in data["tags"]
     
     def test_tag_valid_with_digits(self):
-        """Test tag with digits"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
@@ -1128,7 +1128,7 @@ class TestTagValidation:
         assert "tag123" in data["tags"]
     
     def test_tag_valid_with_dashes(self):
-        """Test tag with dashes"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
@@ -1141,7 +1141,7 @@ class TestTagValidation:
         assert "my-tag-123" in data["tags"]
     
     def test_tag_whitespace_stripped(self):
-        """Test that whitespace is stripped from tags"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
@@ -1151,14 +1151,14 @@ class TestTagValidation:
         response = requests.post(f"{BASE_URL}/notes", json=payload)
         assert response.status_code == 201
         data = response.json()
-        # Whitespace should be stripped
+        # Leerzeichen sollen entfernt werden
         assert "work" in data["tags"]
         assert "tag" in data["tags"]
-        # No whitespace versions should exist
+        # Versionen mit Leerzeichen sollen nicht existieren
         assert "  work  " not in data["tags"]
     
     def test_tag_uppercase_converted_to_lowercase(self):
-        """Test that uppercase tags are converted to lowercase"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
@@ -1168,15 +1168,15 @@ class TestTagValidation:
         response = requests.post(f"{BASE_URL}/notes", json=payload)
         assert response.status_code == 201
         data = response.json()
-        # Should be lowercased
+        # Soll klein geschrieben sein
         assert "work" in data["tags"]
         assert "meeting" in data["tags"]
-        # Uppercase should not exist
+        # Grossschreibung soll nicht extra existieren
         assert "WORK" not in data["tags"]
         assert "Meeting" not in data["tags"]
     
     def test_tag_min_length_1_fails(self):
-        """Test tag with 1 character fails (min_length=2)"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
@@ -1187,7 +1187,7 @@ class TestTagValidation:
         assert response.status_code == 422
     
     def test_tag_min_length_2_succeeds(self):
-        """Test tag with 2 characters succeeds (min_length=2)"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
@@ -1198,7 +1198,7 @@ class TestTagValidation:
         assert response.status_code == 201
     
     def test_tag_max_length_30_succeeds(self):
-        """Test tag with 30 characters succeeds (max_length=30)"""
+        """Prueft einen einfachen Testfall fuer die API."""
         tag_30 = "a" * 30
         payload = {
             "title": "Title",
@@ -1210,7 +1210,7 @@ class TestTagValidation:
         assert response.status_code == 201
     
     def test_tag_max_length_31_fails(self):
-        """Test tag with 31 characters fails (max_length=30)"""
+        """Prueft einen einfachen Testfall fuer die API."""
         tag_31 = "a" * 31
         payload = {
             "title": "Title",
@@ -1222,55 +1222,55 @@ class TestTagValidation:
         assert response.status_code == 422
     
     def test_tag_invalid_uppercase_in_pattern(self):
-        """Test tag with uppercase letters fails (pattern: ^[a-z0-9-]+$)"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
             "category": "Cat",
-            "tags": ["MyTag"]  # Has uppercase
+            "tags": ["MyTag"]  # enthaelt Grossbuchstaben
         }
         response = requests.post(f"{BASE_URL}/notes", json=payload)
-        # Should fail because uppercase would be lowercased but then...
-        # Actually, we lowercase in the validator, so "MyTag" becomes "mytag" which is valid
+        # Eigentlich wird Grossschreibung vorher klein gemacht.
+        # Der Validator macht daraus Kleinbuchstaben, deshalb ist es gueltig.
         assert response.status_code == 201
         data = response.json()
         assert "mytag" in data["tags"]
     
     def test_tag_invalid_special_chars(self):
-        """Test tag with special characters fails"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
             "category": "Cat",
-            "tags": ["tag@name"]  # Has @
+            "tags": ["tag@name"]  # enthaelt @
         }
         response = requests.post(f"{BASE_URL}/notes", json=payload)
         assert response.status_code == 422
     
     def test_tag_invalid_underscore(self):
-        """Test tag with underscore fails (pattern: ^[a-z0-9-]+$)"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
             "category": "Cat",
-            "tags": ["tag_name"]  # Has underscore
+            "tags": ["tag_name"]  # enthaelt Unterstrich
         }
         response = requests.post(f"{BASE_URL}/notes", json=payload)
         assert response.status_code == 422
     
     def test_tag_invalid_space(self):
-        """Test tag with space fails after stripping"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
             "category": "Cat",
-            "tags": ["tag name"]  # Has space (not just leading/trailing)
+            "tags": ["tag name"]  # enthaelt ein Leerzeichen in der Mitte
         }
         response = requests.post(f"{BASE_URL}/notes", json=payload)
         assert response.status_code == 422
     
     def test_tag_valid_dash_at_edges(self):
-        """Test tag with dashes at edges (should be valid)"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
@@ -1284,20 +1284,20 @@ class TestTagValidation:
         assert "a-b" in data["tags"]
     
     def test_tag_empty_string_fails(self):
-        """Test empty tag after stripping fails"""
+        """Prueft einen einfachen Testfall fuer die API."""
         payload = {
             "title": "Title",
             "content": "Content",
             "category": "Cat",
-            "tags": ["   "]  # Only whitespace
+            "tags": ["   "]  # nur Leerzeichen
         }
         response = requests.post(f"{BASE_URL}/notes", json=payload)
-        # Empty string after strip should fail min_length=2
+        # Einfacher Hinweis: Hier wird dieser Testschritt vorbereitet oder geprueft.
         assert response.status_code == 422
     
     def test_patch_tag_constraint_validation(self):
-        """Test that tag validation also works on PATCH"""
-        # Create initial note
+        """Prueft einen einfachen Testfall fuer die API."""
+        # Erste Notiz erstellen
         payload = {
             "title": "Title",
             "content": "Content",
@@ -1307,12 +1307,12 @@ class TestTagValidation:
         create_response = requests.post(f"{BASE_URL}/notes", json=payload)
         note_id = create_response.json()["id"]
         
-        # Try to patch with invalid tag
-        patch_payload = {"tags": ["a"]}  # Too short (min_length=2)
+        # Einfacher Hinweis: Hier wird dieser Testschritt vorbereitet oder geprueft.
+        patch_payload = {"tags": ["a"]}  # zu kurz (min_length=2)
         response = requests.patch(f"{BASE_URL}/notes/{note_id}", json=patch_payload)
         assert response.status_code == 422
         
-        # Patch with valid tag should succeed
+        # PATCH mit einem gueltigen Tag soll klappen.
         patch_payload = {"tags": ["tag2", "tag-3"]}
         response = requests.patch(f"{BASE_URL}/notes/{note_id}", json=patch_payload)
         assert response.status_code == 200

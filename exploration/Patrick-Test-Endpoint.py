@@ -3,7 +3,7 @@ import requests
 BASE_URL = "http://127.0.0.1:8000"
 
 def test_create_note():
-    """Test creating a new note"""
+    """Prueft einen einfachen Testfall fuer die API."""
     note_data = {
         "title": "Test Note",
         "content": "Test content",
@@ -23,7 +23,7 @@ def test_create_note():
 
 
 def test_list_notes():
-    """Test listing all notes"""
+    """Prueft einen einfachen Testfall fuer die API."""
     response = requests.get(
         f"{BASE_URL}/notes"
     )
@@ -35,8 +35,8 @@ def test_list_notes():
 
 
 def test_get_note_by_id():
-    """Test getting specific note"""
-    # First create a note
+    """Prueft einen einfachen Testfall fuer die API."""
+    # Zuerst eine Notiz erstellen.
     create_resp = requests.post(
         f"{BASE_URL}/notes",
         json={
@@ -48,7 +48,7 @@ def test_get_note_by_id():
     )
     note_id = create_resp.json()["id"]
 
-    # Then get it
+    # Danach wieder abrufen
     response = requests.get(
         f"{BASE_URL}/notes/{note_id}"
     )
@@ -56,8 +56,8 @@ def test_get_note_by_id():
 
 
 def test_update_note():
-    """Test updating a note (PUT)"""
-    # Create note first
+    """Prueft einen einfachen Testfall fuer die API."""
+    # Zuerst eine Notiz erstellen.
     create_resp = requests.post(f"{BASE_URL}/notes", json={
         "title": "Old Title",
         "content": "Old content",
@@ -66,7 +66,7 @@ def test_update_note():
     })
     note_id = create_resp.json()["id"]
 
-    # Update it
+    # Dann aktualisieren
     updated_data = {
         "title": "Updated Title",
         "content": "Updated content",
@@ -80,8 +80,8 @@ def test_update_note():
 
 
 def test_delete_note():
-    """Test deleting a note"""
-    # Create then delete
+    """Prueft einen einfachen Testfall fuer die API."""
+    # Erstellen und danach loeschen
     create_resp = requests.post(f"{BASE_URL}/notes", json={
         "title": "Delete Me",
         "content": "Will be deleted",
@@ -93,15 +93,15 @@ def test_delete_note():
     response = requests.delete(f"{BASE_URL}/notes/{note_id}")
     assert response.status_code in [200, 204]
 
-    # Verify it's gone
+    # Pruefen, ob sie wirklich weg ist
     get_resp = requests.get(f"{BASE_URL}/notes/{note_id}")
     assert get_resp.status_code == 404
 
-#  Task 2: Test Filtering
+# Aufgabe 2: Filter testen.
 
 def test_filter_by_category():
-    """Test filtering notes by category"""
-    # Create notes in specific category
+    """Prueft einen einfachen Testfall fuer die API."""
+    # Notizen in einer bestimmten Kategorie erstellen.
     for i in range(3):
         requests.post(f"{BASE_URL}/notes", json={
             "title": f"Note {i}",
@@ -115,14 +115,14 @@ def test_filter_by_category():
     assert response.status_code == 200
     notes = response.json()
 
-    # All returned notes should be in Work category
+    # Einfacher Hinweis: Hier wird dieser Testschritt vorbereitet oder geprueft.
     for note in notes:
         assert note["category"] == "Work"
 
 
 def test_filter_by_search():
-    """Test search functionality"""
-    # Create a note with "meeting" in title
+    """Prueft einen einfachen Testfall fuer die API."""
+    # Eine Notiz mit "meeting" im Titel erstellen
     requests.post(f"{BASE_URL}/notes", json={
         "title": "Important meeting",
         "content": "Discuss budget",
@@ -132,15 +132,15 @@ def test_filter_by_search():
 
     response = requests.get(f"{BASE_URL}/notes?search=meeting")
     assert response.status_code == 200
-    # Results should contain "meeting" in title or content
+    # Ergebnisse sollen "meeting" im Titel oder Inhalt haben
     notes = response.json()
     for note in notes:
         assert "meeting" in note["title"].lower() or "meeting" in note["content"].lower()
 
 
 def test_filter_by_tag():
-    """Test filtering by tag"""
-    # Create a note with specific tag
+    """Prueft einen einfachen Testfall fuer die API."""
+    # Einfacher Hinweis: Hier wird dieser Testschritt vorbereitet oder geprueft.
     requests.post(f"{BASE_URL}/notes", json={
         "title": "Tagged Note",
         "content": "Has urgent tag",
@@ -156,8 +156,8 @@ def test_filter_by_tag():
 
 
 def test_combined_filters():
-    """Test using multiple filters at once"""
-    # Create a note that matches all filters
+    """Prueft einen einfachen Testfall fuer die API."""
+    # Eine Notiz erstellen, die zu allen Filtern passt
     requests.post(f"{BASE_URL}/notes", json={
         "title": "Urgent meeting notes",
         "content": "Budget meeting discussion",
@@ -172,15 +172,15 @@ def test_combined_filters():
     assert response.status_code == 200
     notes = response.json()
 
-    # Verify all filters applied
+    # Einfacher Hinweis: Hier wird dieser Testschritt vorbereitet oder geprueft.
     for note in notes:
         assert note["category"] == "Work"
         assert "urgent" in note["tags"]
 
 
 def test_date_filtering():
-    """Test date-based filtering (Day 3 Task 5)"""
-    # Create a note (will have current timestamp)
+    """Prueft einen einfachen Testfall fuer die API."""
+    # Eine Notiz erstellen, sie bekommt die aktuelle Zeit
     requests.post(f"{BASE_URL}/notes", json={
         "title": "Date Test",
         "content": "Testing date filter",
@@ -188,30 +188,30 @@ def test_date_filtering():
         "tags": []
     })
 
-    # Filter with created_after in the past
+    # Mit created_after in der Vergangenheit filtern
     response = requests.get(f"{BASE_URL}/notes?created_after=2020-01-01")
     assert response.status_code == 200
     assert len(response.json()) >= 1
 
-    # Filter with created_before in the future
+    # Mit created_before in der Zukunft filtern
     response2 = requests.get(f"{BASE_URL}/notes?created_before=2099-12-31")
     assert response2.status_code == 200
     assert len(response2.json()) >= 1
 
-#  Task 3: Test Error Cases
+# Aufgabe 3: Fehlerfaelle testen.
 
 def test_create_note_missing_field():
-    """Test creating note with missing required field"""
+    """Prueft einen einfachen Testfall fuer die API."""
     invalid_note = {
         "title": "Test",
-        # Missing content and category
+        # Content und Kategorie fehlen
     }
     response = requests.post(f"{BASE_URL}/notes", json=invalid_note)
     assert response.status_code == 422
 
 
 def test_get_nonexistent_note():
-    """Test getting a note that doesn't exist"""
+    """Prueft einen einfachen Testfall fuer die API."""
     response = requests.get(f"{BASE_URL}/notes/99999")
 
     assert response.status_code == 404
@@ -219,7 +219,7 @@ def test_get_nonexistent_note():
 
 
 def test_update_nonexistent_note():
-    """Test updating a note that doesn't exist"""
+    """Prueft einen einfachen Testfall fuer die API."""
     updated_data = {
         "title": "Ghost",
         "content": "Does not exist",
@@ -231,14 +231,14 @@ def test_update_nonexistent_note():
 
 
 def test_delete_nonexistent_note():
-    """Test deleting a note that doesn't exist"""
+    """Prueft einen einfachen Testfall fuer die API."""
     response = requests.delete(f"{BASE_URL}/notes/99999")
     assert response.status_code == 404
 
-#  Task 4: Test Day 3 Homework Features
+# Aufgabe 4: Funktionen von Tag 3 testen.
 
 def test_notes_statistics():
-    """Test GET /notes/stats endpoint (Day 3 Task 2)"""
+    """Prueft einen einfachen Testfall fuer die API."""
     response = requests.get(f"{BASE_URL}/notes/stats")
 
     assert response.status_code == 200
@@ -248,7 +248,7 @@ def test_notes_statistics():
 
 
 def test_list_categories():
-    """Test GET /categories endpoint (Day 3 Task 3)"""
+    """Prueft einen einfachen Testfall fuer die API."""
     response = requests.get(f"{BASE_URL}/categories")
 
     assert response.status_code == 200
@@ -257,8 +257,8 @@ def test_list_categories():
 
 
 def test_notes_by_category():
-    """Test GET /categories/{category}/notes (Day 3 Task 3)"""
-    # Create note in known category
+    """Prueft einen einfachen Testfall fuer die API."""
+    # Notiz erstellen in known Kategorie
     requests.post(f"{BASE_URL}/notes", json={
         "title": "Category Test",
         "content": "Testing category endpoint",
@@ -274,8 +274,8 @@ def test_notes_by_category():
 
 
 def test_patch_note_title_only():
-    """Test PATCH to update only title (Day 3 Task 4)"""
-    # Create note
+    """Prueft einen einfachen Testfall fuer die API."""
+    # Notiz erstellen
     create_resp = requests.post(f"{BASE_URL}/notes", json={
         "title": "Original Title",
         "content": "Keep this content",
@@ -284,13 +284,13 @@ def test_patch_note_title_only():
     })
     note_id = create_resp.json()["id"]
 
-    # Update only title
+    # Nur den Titel aktualisieren
     response = requests.patch(
         f"{BASE_URL}/notes/{note_id}",
         json={"title": "Changed Title"}
     )
 
-    # Check if only title is changed
+    # Pruefen, ob nur der Titel geaendert wurde
     assert response.status_code == 200
     data = response.json()
     assert data["title"] == "Changed Title"
@@ -299,8 +299,8 @@ def test_patch_note_title_only():
 
 
 def test_patch_multiple_fields():
-    """Test PATCH with multiple fields"""
-    # Similar but update title and content
+    """Prueft einen einfachen Testfall fuer die API."""
+    # Aehnlich, aber Titel und Inhalt werden geaendert
     create_resp = requests.post(f"{BASE_URL}/notes", json={
         "title": "Multi Patch",
         "content": "Old content",
@@ -318,4 +318,4 @@ def test_patch_multiple_fields():
     data = response.json()
     assert data["title"] == "New Title"
     assert data["category"] == "New"
-    assert data["content"] == "Old content"  # unchanged
+    assert data["content"] == "Old content"  # Bleibt unveraendert.
