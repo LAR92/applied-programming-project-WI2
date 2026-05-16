@@ -4,7 +4,7 @@ Vorher den FastAPI-Server starten:
     uv run fastapi dev main.py
 
 Dann die Tests starten:
-    uv run pytest Test_main_day6.py -v"""
+    uv run pytest test_main.py -v"""
 
 from datetime import datetime, timedelta
 
