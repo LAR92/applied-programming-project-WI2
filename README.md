@@ -58,7 +58,7 @@ Die API speichert Notizen dauerhaft in einer lokalen SQLite-Datenbank. Tags werd
 applied-programming-project-WI2/
 ├── data/
 │   └── notes.json              # Legacy-/JSON-Datei aus früheren Entwicklungsständen
-├── exploration/                # Übungen, Experimente und Zwischenschritte
+├── exploration/                # Übungen, Experimente und nicht abgaberelevante Zwischenschritte
 ├── .gitignore
 ├── .python-version
 ├── README.md
@@ -314,8 +314,6 @@ Wichtige Validierungsregeln:
 * Nicht erlaubte zusätzliche Felder werden abgelehnt.
 * Beim `PATCH`-Endpunkt werden nur die übergebenen Felder aktualisiert.
 
-Zusätzlich enthält das Projekt eine Cross-Field-Validation: Wenn eine Notiz als Kategorie `work` verwendet und gleichzeitig Tags übergeben werden, muss der Tag `work` enthalten sein.
-
 ---
 
 ## Tests
@@ -343,6 +341,8 @@ Nur die API-Tests ausführen:
 ```bash
 pytest test_main.py
 ```
+
+Hinweis: Der Ordner `exploration/` enthält ältere Übungen, Experimente und Zwischenschritte aus dem Kurs. Für die Abgabe und den normalen Testlauf ist die Haupttestsuite in `test_main.py` relevant.
 
 ---
 

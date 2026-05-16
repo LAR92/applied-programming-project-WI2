@@ -13,3 +13,9 @@ dependencies = [
     "sqlmodel>=0.0.38",
     "streamlit>=1.57.0",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["test_main.py"]
+markers = [
+    "performance: marks performance checks for API endpoints",
+]
